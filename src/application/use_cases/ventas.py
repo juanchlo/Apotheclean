@@ -6,10 +6,10 @@ from decimal import Decimal
 from typing import Optional, List
 from dataclasses import dataclass
 
-from domain.entities import (
+from src.domain.entities import (
     Venta, DetalleVenta, ModalidadVenta, EstadoVenta
 )
-from application.ports.repositories import (
+from src.application.ports.repositories import (
     IVentaRepository, IProductoRepository
 )
 

@@ -12,20 +12,20 @@ from typing import Optional
 
 from flask import Flask, jsonify
 
-from infraestructure.adapters.orm.config import (
+from src.infraestructure.adapters.orm.config import (
     engine,
     SessionLocal,
     inicializar_base_datos
 )
-from infraestructure.adapters.sqlalchemy_usuario_repository import SQLAlchemyUsuarioRepository
-from infraestructure.adapters.sqlalchemy_producto_repository import SQLAlchemyProductoRepository
-from infraestructure.adapters.sqlalchemy_venta_repository import SQLAlchemyVentaRepository
-from infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
-from infraestructure.storage.filesystem_image_adapter import FilesystemImageAdapter
+from src.infraestructure.adapters.sqlalchemy_usuario_repository import SQLAlchemyUsuarioRepository
+from src.infraestructure.adapters.sqlalchemy_producto_repository import SQLAlchemyProductoRepository
+from src.infraestructure.adapters.sqlalchemy_venta_repository import SQLAlchemyVentaRepository
+from src.infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
+from src.infraestructure.storage.filesystem_image_adapter import FilesystemImageAdapter
 
-from infraestructure.api.routes.auth import auth_bp
-from infraestructure.api.routes.productos import productos_bp
-from infraestructure.api.routes.ventas import ventas_bp
+from src.infraestructure.api.routes.auth import auth_bp
+from src.infraestructure.api.routes.productos import productos_bp
+from src.infraestructure.api.routes.ventas import ventas_bp
 
 
 def configurar_logging(nivel: str = "INFO") -> None:

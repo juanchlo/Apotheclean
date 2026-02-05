@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Optional
-from domain.entities import Usuario
+from src.domain.entities import Usuario
 
 
 class IAuth(ABC):

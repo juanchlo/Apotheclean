@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
 
-from application.ports.image_storage import IImageStorage
+from src.application.ports.image_storage import IImageStorage
 
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,13 @@
 """Inicializador del paquete ORM."""
 
-from infraestructure.adapters.orm.config import (
+from src.infraestructure.adapters.orm.config import (
     Base,
     engine,
     SessionLocal,
     obtener_session,
     inicializar_base_datos
 )
-from infraestructure.adapters.orm.models import (
+from src.infraestructure.adapters.orm.models import (
     UsuarioModel,
     ProductoModel,
     VentaModel,

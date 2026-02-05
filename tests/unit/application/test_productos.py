@@ -7,12 +7,11 @@ Utiliza mocks para simular repositorios y almacenamiento de imágenes.
 import pytest
 from unittest.mock import Mock
 from decimal import Decimal
-from uuid import uuid4, UUID
-
-from domain.entities import Producto
-from application.ports.repositories import IProductoRepository
-from application.ports.image_storage import IImageStorage
-from application.use_cases.productos import (
+from uuid import uuid4
+from src.domain.entities import Producto
+from src.application.ports.repositories import IProductoRepository
+from src.application.ports.image_storage import IImageStorage
+from src.application.use_cases.productos import (
     CrearProducto,
     CrearProductoInput,
     ActualizarProducto,

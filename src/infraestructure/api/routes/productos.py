@@ -11,8 +11,8 @@ from uuid import UUID
 from flask import Blueprint, request, jsonify, current_app, send_file
 import io
 
-from infraestructure.api.decorators import requiere_auth, requiere_admin
-from application.use_cases.productos import (
+from src.infraestructure.api.decorators import requiere_auth, requiere_admin
+from src.application.use_cases.productos import (
     CrearProducto,
     CrearProductoInput,
     ActualizarProducto,

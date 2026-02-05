@@ -3,9 +3,9 @@
 from uuid import UUID
 from typing import Optional
 from dataclasses import dataclass
-from domain.entities import Usuario, RolUsuario
-from application.ports.repositories import IUsuarioRepository
-from application.ports.auth import IAuth
+from src.domain.entities import Usuario, RolUsuario
+from src.application.ports.repositories import IUsuarioRepository
+from src.application.ports.auth import IAuth
 
 
 @dataclass

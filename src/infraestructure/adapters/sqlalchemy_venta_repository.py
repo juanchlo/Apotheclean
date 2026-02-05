@@ -7,9 +7,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from domain.entities import Venta, DetalleVenta, ModalidadVenta, EstadoVenta
-from application.ports.repositories import IVentaRepository
-from infraestructure.adapters.orm.models import VentaModel, DetalleVentaModel
+from src.domain.entities import Venta, DetalleVenta, ModalidadVenta, EstadoVenta
+from src.application.ports.repositories import IVentaRepository
+from src.infraestructure.adapters.orm.models import VentaModel, DetalleVentaModel
 
 
 class SQLAlchemyVentaRepository(IVentaRepository):
@@ -143,7 +143,7 @@ class SQLAlchemyVentaRepository(IVentaRepository):
         """Obtiene el ID interno de un usuario por su UUID."""
         if uuid is None:
             return None
-        from infraestructure.adapters.orm.models import UsuarioModel
+        from src.infraestructure.adapters.orm.models import UsuarioModel
         modelo = self.session.query(UsuarioModel).filter_by(
             uuid=uuid.bytes
         ).first()

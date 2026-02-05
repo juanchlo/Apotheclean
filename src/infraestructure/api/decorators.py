@@ -10,8 +10,8 @@ from typing import Callable, Optional
 
 from flask import request, jsonify, g
 
-from infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
-from domain.entities import RolUsuario
+from src.infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
+from src.domain.entities import RolUsuario
 
 
 logger = logging.getLogger(__name__)

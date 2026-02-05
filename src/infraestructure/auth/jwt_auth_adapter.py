@@ -14,8 +14,8 @@ from uuid import UUID
 import bcrypt
 import jwt
 
-from application.ports.auth import IAuth
-from domain.entities import Usuario, RolUsuario
+from src.application.ports.auth import IAuth
+from src.domain.entities import Usuario, RolUsuario
 
 
 logger = logging.getLogger(__name__)

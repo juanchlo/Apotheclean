@@ -9,8 +9,8 @@ import pytest
 import os
 from uuid import uuid4
 
-from domain.entities import Usuario, RolUsuario
-from infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
+from src.domain.entities import Usuario, RolUsuario
+from src.infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
 
 
 class TestJwtAuthAdapter:

@@ -20,5 +20,9 @@ dev = [
     "pytest-cov>=6.0.0",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
 [tool.flake8]
 max-line-length = 120

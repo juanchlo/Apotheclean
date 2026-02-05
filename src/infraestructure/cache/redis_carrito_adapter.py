@@ -22,7 +22,7 @@ from tenacity import (
     before_sleep_log
 )
 
-from application.ports.cache import ICarritoCache
+from src.application.ports.cache import ICarritoCache
 
 
 logger = logging.getLogger(__name__)

@@ -6,9 +6,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from domain.entities import Producto
-from application.ports.repositories import IProductoRepository
-from infraestructure.adapters.orm.models import ProductoModel
+from src.domain.entities import Producto
+from src.application.ports.repositories import IProductoRepository
+from src.infraestructure.adapters.orm.models import ProductoModel
 
 
 class SQLAlchemyProductoRepository(IProductoRepository):

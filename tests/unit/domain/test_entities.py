@@ -8,7 +8,7 @@ import pytest
 from decimal import Decimal
 from uuid import uuid4
 
-from domain.entities import (
+from src.domain.entities import (
     Producto,
     Usuario,
     Venta,

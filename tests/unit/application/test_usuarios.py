@@ -8,10 +8,10 @@ import pytest
 from unittest.mock import Mock
 from uuid import uuid4
 
-from domain.entities import Usuario, RolUsuario
-from application.ports.repositories import IUsuarioRepository
-from application.ports.auth import IAuth
-from application.use_cases.usuarios import (
+from src.domain.entities import Usuario, RolUsuario
+from src.application.ports.repositories import IUsuarioRepository
+from src.application.ports.auth import IAuth
+from src.application.use_cases.usuarios import (
     RegistrarUsuario,
     RegistrarAdministrador,
     RegistrarUsuarioInput,

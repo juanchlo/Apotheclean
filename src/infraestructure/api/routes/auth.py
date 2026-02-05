@@ -8,7 +8,7 @@ import logging
 
 from flask import Blueprint, request, jsonify
 
-from application.use_cases.usuarios import (
+from src.application.use_cases.usuarios import (
     RegistrarUsuario,
     RegistrarUsuarioInput,
     LoginUsuario,

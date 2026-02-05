@@ -5,9 +5,9 @@ from decimal import Decimal
 from typing import Optional, List
 from dataclasses import dataclass
 
-from domain.entities import Producto
-from application.ports.repositories import IProductoRepository
-from application.ports.image_storage import IImageStorage
+from src.domain.entities import Producto
+from src.application.ports.repositories import IProductoRepository
+from src.application.ports.image_storage import IImageStorage
 
 
 @dataclass

@@ -9,9 +9,9 @@ from unittest.mock import Mock
 from decimal import Decimal
 from uuid import uuid4
 
-from domain.entities import Producto, Venta, DetalleVenta, ModalidadVenta, EstadoVenta
-from application.ports.repositories import IVentaRepository, IProductoRepository
-from application.use_cases.ventas import (
+from src.domain.entities import Producto, Venta, DetalleVenta, ModalidadVenta, EstadoVenta
+from src.application.ports.repositories import IVentaRepository, IProductoRepository
+from src.application.use_cases.ventas import (
     CrearVenta,
     CrearVentaInput,
     ItemVentaInput,

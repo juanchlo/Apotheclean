@@ -6,7 +6,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from uuid import UUID
-from domain.entities import Producto, Usuario, Venta, ModalidadVenta, EstadoVenta
+from src.domain.entities import Producto, Usuario, Venta, ModalidadVenta, EstadoVenta
 
 
 class IProductoRepository(ABC):

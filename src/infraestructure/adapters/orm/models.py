@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from infraestructure.adapters.orm.config import Base
+from src.infraestructure.adapters.orm.config import Base
 
 
 class UsuarioModel(Base):

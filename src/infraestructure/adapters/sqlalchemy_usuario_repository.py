@@ -5,9 +5,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from domain.entities import Usuario, RolUsuario
-from application.ports.repositories import IUsuarioRepository
-from infraestructure.adapters.orm.models import UsuarioModel
+from src.domain.entities import Usuario, RolUsuario
+from src.application.ports.repositories import IUsuarioRepository
+from src.infraestructure.adapters.orm.models import UsuarioModel
 
 
 class SQLAlchemyUsuarioRepository(IUsuarioRepository):

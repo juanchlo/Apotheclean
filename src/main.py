@@ -3,20 +3,12 @@ Punto de entrada principal de la aplicación Apotheclean.
 """
 
 import os
-import sys
 from pathlib import Path
-
-# Agregar src al path para permitir imports absolutos
-src_path = Path(__file__).parent
-sys.path.insert(0, str(src_path))
-
 from dotenv import load_dotenv
+from src.infraestructure.api.app import crear_app
 
-# Cargar variables de entorno desde .env
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
-
-from infraestructure.api.app import crear_app
 
 
 def main():

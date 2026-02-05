@@ -10,9 +10,9 @@ from uuid import UUID
 
 from flask import Blueprint, request, jsonify, current_app, g
 
-from infraestructure.api.decorators import requiere_auth, requiere_admin
-from domain.entities import ModalidadVenta, EstadoVenta
-from application.use_cases.ventas import (
+from src.infraestructure.api.decorators import requiere_auth, requiere_admin
+from src.domain.entities import ModalidadVenta, EstadoVenta
+from src.application.use_cases.ventas import (
     CrearVenta,
     CrearVentaInput,
     ItemVentaInput,

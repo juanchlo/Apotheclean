@@ -23,7 +23,7 @@ from tenacity import (
     before_sleep_log
 )
 
-from application.ports.cache import ICache
+from src.application.ports.cache import ICache
 
 
 logger = logging.getLogger(__name__)
