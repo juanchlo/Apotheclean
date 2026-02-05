@@ -6,6 +6,18 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "sqlalchemy>=2.0.46",
+    "bcrypt>=4.2.0",
+    "PyJWT>=2.10.0",
+    "redis>=5.2.0",
+    "flask>=3.1.2",
+    "python-dotenv>=1.0.0",
+    "tenacity>=9.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
 ]
 
 [tool.flake8]

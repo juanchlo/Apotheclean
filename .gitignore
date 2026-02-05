@@ -113,6 +113,3 @@ Thumbs.db
 *.tfstate
 *.tfstate.*
 *.tfvars
-
-# Scripts folder (exclusión específica del proyecto)
-scripts/
