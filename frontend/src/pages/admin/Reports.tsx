@@ -42,6 +42,7 @@ export function Reports() {
 
     // Estado de datos
     const [ventas, setVentas] = useState<Venta[]>([]);
+    const [todasLasVentas, setTodasLasVentas] = useState<Venta[]>([]); // Para el gráfico
     const [totalVentas, setTotalVentas] = useState(0);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export function Reports() {
     const [productosMap, setProductosMap] = useState<Map<string, Producto>>(new Map());
 
     // Estado de paginación
-    const [limite] = useState(10);
+    const [limite] = useState(12);
     const [offset, setOffset] = useState(0);
 
     // Estado del modal de detalle
@@ -62,9 +63,9 @@ export function Reports() {
     const tooltipRef = useRef<HTMLDivElement>(null);
 
     /**
-     * Carga las ventas desde la API.
+     * Carga las ventas paginadas para la tabla.
      */
-    const cargarVentas = useCallback(async () => {
+    const cargarVentasPaginadas = useCallback(async () => {
         setCargando(true);
         setError(null);
 
@@ -77,9 +78,9 @@ export function Reports() {
 
             const respuesta = await obtenerReporteVentas(params);
             setVentas(respuesta.ventas);
-            setTotalVentas(respuesta.total);
+            // setTotalVentas(respuesta.total); // Usamos el total de 'todasLasVentas' para evitar paginación incorrecta
 
-            // Extraer todos los IDs de productos únicos
+            // Extraer IDs de productos únicos de las ventas paginadas
             const productosIds = new Set<string>();
             respuesta.ventas.forEach(venta => {
                 venta.items.forEach(item => {
@@ -90,7 +91,7 @@ export function Reports() {
             // Cargar información de productos
             if (productosIds.size > 0) {
                 const productos = await obtenerProductosBatch(Array.from(productosIds));
-                setProductosMap(productos);
+                setProductosMap(prev => new Map([...prev, ...productos]));
             }
         } catch (err) {
             if (err instanceof ApiException) {
@@ -103,17 +104,56 @@ export function Reports() {
         }
     }, [limite, offset, modalidad, estado, fechaInicio, fechaFin]);
 
-    // Cargar ventas al montar y cuando cambian los filtros
+    /**
+     * Carga TODAS las ventas para el gráfico (sin paginación).
+     * Solo se ejecuta cuando cambian los filtros, no cuando cambia el offset.
+     */
+    const cargarTodasLasVentas = useCallback(async () => {
+        try {
+            const params: ReporteVentasParams = { limite: 10000, offset: 0 };
+            if (modalidad) params.modalidad = modalidad;
+            if (estado) params.estado = estado;
+            if (fechaInicio) params.fecha_inicio = fechaInicio;
+            if (fechaFin) params.fecha_fin = fechaFin;
+
+            const respuesta = await obtenerReporteVentas(params);
+            setTodasLasVentas(respuesta.ventas);
+            setTotalVentas(respuesta.total);
+
+            // Extraer IDs de productos únicos de todas las ventas
+            const productosIds = new Set<string>();
+            respuesta.ventas.forEach(venta => {
+                venta.items.forEach(item => {
+                    productosIds.add(item.producto_id);
+                });
+            });
+
+            // Cargar información de productos
+            if (productosIds.size > 0) {
+                const productos = await obtenerProductosBatch(Array.from(productosIds));
+                setProductosMap(prev => new Map([...prev, ...productos]));
+            }
+        } catch (err) {
+            console.error('Error al cargar todas las ventas para el gráfico:', err);
+        }
+    }, [modalidad, estado, fechaInicio, fechaFin]); // Sin limite ni offset
+
+    // Cargar ventas paginadas cuando cambia offset o filtros
     useEffect(() => {
-        cargarVentas();
-    }, [cargarVentas]);
+        cargarVentasPaginadas();
+    }, [cargarVentasPaginadas]);
+
+    // Cargar todas las ventas solo cuando cambian los filtros (no el offset)
+    useEffect(() => {
+        cargarTodasLasVentas();
+    }, [cargarTodasLasVentas]);
 
     /**
      * Aplica los filtros y reinicia la paginación.
      */
     const aplicarFiltros = () => {
         setOffset(0);
-        cargarVentas();
+        // cargarVentasPaginadas y cargarTodasLasVentas se ejecutarán automáticamente
     };
 
     /**
@@ -145,13 +185,13 @@ export function Reports() {
 
     /**
      * Calcula datos para el gráfico pie.
-     * Agrupa ventas por productos y muestra top 5 + otros.
+     * Agrupa TODAS las ventas por productos y muestra top 5 + otros.
      */
     const calcularDatosGrafico = (): ProductoVendido[] => {
-        // Agregar todas las cantidades por producto
+        // Agregar todas las cantidades por producto usando TODAS las ventas
         const productosConteo = new Map<string, number>();
 
-        ventas.forEach(venta => {
+        todasLasVentas.forEach(venta => {
             venta.items.forEach(item => {
                 const actual = productosConteo.get(item.producto_id) || 0;
                 productosConteo.set(item.producto_id, actual + item.cantidad);
@@ -404,7 +444,7 @@ export function Reports() {
                                 <div className="reports-summary-stat">
                                     <span className="reports-summary-value">
                                         {formatearMoneda(
-                                            ventas
+                                            todasLasVentas
                                                 .reduce((sum, v) => sum + parseFloat(v.valor_total_cop), 0)
                                                 .toString()
                                         )}
@@ -414,14 +454,14 @@ export function Reports() {
 
                                 <div className="reports-summary-stat">
                                     <span className="reports-summary-value">
-                                        {ventas.filter(v => v.estado === 'completada').length}
+                                        {todasLasVentas.filter(v => v.estado === 'completada').length}
                                     </span>
                                     <span className="reports-summary-label">Completadas</span>
                                 </div>
 
                                 <div className="reports-summary-stat">
                                     <span className="reports-summary-value">
-                                        {ventas.filter(v => v.estado === 'pendiente').length}
+                                        {todasLasVentas.filter(v => v.estado === 'pendiente').length}
                                     </span>
                                     <span className="reports-summary-label">Pendientes</span>
                                 </div>
