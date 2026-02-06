@@ -1,0 +1,208 @@
+/**
+ * Estilos para la página de Registro.
+ * Diseño consistente con la página de Login.
+ */
+
+/* ================================
+   Página de Registro
+   ================================ */
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
+}
+
+/* ================================
+   Fondo Decorativo
+   ================================ */
+.register-background {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.register-background-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.5;
+    filter: blur(80px);
+}
+
+.register-background-shape-1 {
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, #16A34A 0%, #22C55E 100%);
+    top: -200px;
+    left: -100px;
+    animation: float 15s ease-in-out infinite;
+}
+
+.register-background-shape-2 {
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(135deg, var(--color-accent) 0%, #818CF8 100%);
+    bottom: -150px;
+    right: -100px;
+    animation: float 20s ease-in-out infinite reverse;
+}
+
+/* ================================
+   Card de Registro
+   ================================ */
+.register-card {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.08),
+        0 20px 40px -4px rgba(79, 70, 229, 0.1);
+    position: relative;
+    z-index: 1;
+}
+
+/* ================================
+   Header
+   ================================ */
+.register-header {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.register-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-md);
+    transition: color var(--transition-fast);
+}
+
+.register-back:hover {
+    color: var(--color-accent);
+}
+
+.register-back svg {
+    width: 16px;
+    height: 16px;
+}
+
+.register-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+    letter-spacing: -0.02em;
+}
+
+.register-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* ================================
+   Formulario
+   ================================ */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.register-form .input-group {
+    margin-bottom: 0;
+}
+
+.register-form .btn {
+    margin-top: var(--spacing-sm);
+}
+
+/* ================================
+   Footer
+   ================================ */
+.register-footer {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+.register-footer p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.register-footer a {
+    font-weight: 500;
+}
+
+/* ================================
+   Estado de Éxito
+   ================================ */
+.register-success {
+    text-align: center;
+    padding: var(--spacing-2xl);
+}
+
+.success-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto var(--spacing-lg);
+    background: var(--color-success-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-icon svg {
+    width: 36px;
+    height: 36px;
+    color: var(--color-success);
+}
+
+.register-success h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.register-success p {
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.redirect-message {
+    margin-top: var(--spacing-md) !important;
+    font-size: 0.875rem !important;
+    color: var(--color-disabled) !important;
+}
+
+/* ================================
+   Responsive
+   ================================ */
+@media (max-width: 480px) {
+    .register-page {
+        padding: var(--spacing-md);
+    }
+
+    .register-card {
+        padding: var(--spacing-lg);
+    }
+
+    .register-title {
+        font-size: 1.5rem;
+    }
+}

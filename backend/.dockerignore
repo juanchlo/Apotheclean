@@ -1,0 +1,67 @@
+# ==============================================
+# Docker Ignore para Apotheclean Backend
+# ==============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+*.egg
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Redis
+dump.rdb
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Misc
+.DS_Store
+Thumbs.db
+.env
+*.md
+!README.md
+LICENSE
+
+# Dotfiles del agente
+.agent/
+.gemini/

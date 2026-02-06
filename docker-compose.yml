@@ -9,7 +9,7 @@ services:
   # ------------------------------------------
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: production
     container_name: apotheclean-backend
@@ -27,8 +27,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      # Persistir base de datos SQLite
-      - sqlite_data:/app/data
+      # Persistir base de datos SQLite y archivos (bind mount)
+      - ./backend/data:/app/data
     depends_on:
       redis:
         condition: service_healthy

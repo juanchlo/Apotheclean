@@ -1,0 +1,758 @@
+/**
+ * Estilos para la página de Reportes de Administrador.
+ */
+
+/* ================================
+   Página de Reportes
+   ================================ */
+.reports-page {
+    min-height: 100vh;
+    background: var(--color-surface);
+}
+
+/* ================================
+   Header
+   ================================ */
+.reports-header {
+    background: white;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.reports-header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+}
+
+.reports-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.reports-logo svg {
+    width: 28px;
+    height: 28px;
+}
+
+.reports-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.reports-nav-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.reports-nav-link:hover {
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+}
+
+.reports-nav-link.active {
+    color: var(--color-accent);
+    background: var(--color-accent-light);
+}
+
+/* ================================
+   Menú de Usuario
+   ================================ */
+.reports-user {
+    position: relative;
+}
+
+.reports-user-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.reports-user-button:hover {
+    background: var(--color-background);
+    border-color: var(--color-text-secondary);
+}
+
+.reports-user-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.reports-user-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.reports-user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-family: var(--font-family);
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.reports-user-menu-item:hover {
+    background: var(--color-surface);
+}
+
+.reports-user-menu-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-secondary);
+}
+
+/* ================================
+   Contenido Principal
+   ================================ */
+.reports-main {
+    padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.reports-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.reports-title-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.reports-title-section h1 {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.reports-title-section p {
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* ================================
+   Filtros
+   ================================ */
+.reports-filters {
+    margin-bottom: var(--spacing-xl);
+}
+
+.reports-filters h2 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-filters select.input {
+    cursor: pointer;
+}
+
+.reports-filters-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+/* ================================
+   Estadísticas Grid
+   ================================ */
+.reports-stats-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+@media (max-width: 900px) {
+    .reports-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ================================
+   Gráfico
+   ================================ */
+.reports-chart h2 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-chart-container {
+    min-height: 300px;
+}
+
+/* ================================
+   Resumen
+   ================================ */
+.reports-summary h2 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.reports-summary-stat {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+}
+
+.reports-summary-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.reports-summary-label {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: var(--spacing-xs);
+}
+
+/* ================================
+   Lista de Ventas
+   ================================ */
+.reports-list h2 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-2xl);
+    color: var(--color-text-secondary);
+}
+
+.reports-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-2xl);
+    color: var(--color-disabled);
+}
+
+.reports-empty svg {
+    width: 48px;
+    height: 48px;
+}
+
+/* ================================
+   Grid de Cards de Ventas
+   ================================ */
+.reports-sales-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.reports-sale-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.reports-sale-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.reports-sale-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.reports-sale-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--radius-full);
+    text-transform: capitalize;
+}
+
+.reports-sale-badge-pendiente {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.reports-sale-badge-completada {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.reports-sale-badge-cancelada {
+    background: var(--color-error-light);
+    color: var(--color-error);
+}
+
+.reports-sale-modalidad {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+}
+
+.reports-sale-body {
+    margin-bottom: var(--spacing-sm);
+}
+
+.reports-sale-id {
+    font-family: monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-xs);
+}
+
+.reports-sale-fecha {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.reports-sale-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+}
+
+.reports-sale-items {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.reports-sale-total {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+/* ================================
+   Paginación
+   ================================ */
+.reports-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+}
+
+.reports-pagination-info {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+/* ================================
+   Modal
+   ================================ */
+.reports-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    z-index: 1000;
+}
+
+.reports-modal {
+    background: white;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
+
+.reports-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.reports-modal-header h2 {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.reports-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.reports-modal-close:hover {
+    background: var(--color-surface);
+}
+
+.reports-modal-close svg {
+    width: 20px;
+    height: 20px;
+    color: var(--color-text-secondary);
+}
+
+.reports-modal-body {
+    padding: var(--spacing-lg);
+}
+
+.reports-modal-info {
+    margin-bottom: var(--spacing-lg);
+}
+
+.reports-modal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.reports-modal-row:last-child {
+    border-bottom: none;
+}
+
+.reports-modal-row>span:first-child {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.reports-modal-row>span:last-child {
+    color: var(--color-text-primary);
+    word-break: break-all;
+}
+
+.reports-modal-body h3 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.reports-modal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+}
+
+.reports-modal-table th,
+.reports-modal-table td {
+    padding: var(--spacing-sm);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.reports-modal-table th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+}
+
+.reports-modal-table td {
+    font-size: 0.875rem;
+}
+
+.reports-modal-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+}
+
+.reports-modal-total span:last-child {
+    font-size: 1.25rem;
+    color: var(--color-accent);
+}
+
+/* ================================
+   Responsive
+   ================================ */
+@media (max-width: 768px) {
+    .reports-header-content {
+        flex-wrap: wrap;
+    }
+
+    .reports-nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: var(--spacing-sm);
+    }
+
+    .reports-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-sales-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reports-pagination {
+        flex-direction: column;
+    }
+}
+
+/* ================================
+   Nombres de productos en cards de venta
+   ================================ */
+.reports-sale-productos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: var(--spacing-xs);
+}
+
+.reports-sale-producto {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: var(--color-accent-light);
+    color: var(--color-accent);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.reports-sale-producto-mas {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    color: var(--color-text-secondary);
+}
+
+/* ================================
+   Celda de producto con nombre y código
+   ================================ */
+.product-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.product-name {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.product-barcode {
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: var(--color-disabled);
+}
+
+/* ================================
+   Filas de items con hover
+   ================================ */
+.reports-modal-item-row {
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.reports-modal-item-row:hover {
+    background: var(--color-surface);
+}
+
+/* ================================
+   Tooltip del gráfico
+   ================================ */
+.chart-tooltip {
+    background: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+}
+
+.chart-tooltip-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 4px;
+}
+
+.chart-tooltip-barcode {
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--color-disabled);
+    margin: 0 0 4px;
+}
+
+.chart-tooltip-cantidad {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* ================================
+   Tooltip flotante de producto
+   ================================ */
+.product-tooltip {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+    z-index: 2000;
+    min-width: 280px;
+    max-width: 320px;
+    overflow: hidden;
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.product-tooltip-image {
+    width: 100%;
+    height: 160px;
+    background: var(--color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.product-tooltip-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-tooltip-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    color: var(--color-disabled);
+}
+
+.product-tooltip-placeholder svg {
+    width: 48px;
+    height: 48px;
+}
+
+.product-tooltip-placeholder span {
+    font-size: 0.75rem;
+}
+
+.product-tooltip-info {
+    padding: var(--spacing-md);
+}
+
+.product-tooltip-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-sm);
+}
+
+.product-tooltip-info p {
+    font-size: 0.875rem;
+    margin: 0 0 var(--spacing-xs);
+    color: var(--color-text-secondary);
+}
+
+.product-tooltip-info p strong {
+    color: var(--color-text-primary);
+}
+
+.product-tooltip-barcode {
+    font-family: monospace;
+}
+
+.product-tooltip-subtotal {
+    color: var(--color-accent) !important;
+    font-weight: 500;
+}
+
+.product-tooltip-desc {
+    font-size: 0.75rem !important;
+    color: var(--color-disabled) !important;
+    margin-top: var(--spacing-sm) !important;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+    font-style: italic;
+}

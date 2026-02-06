@@ -82,6 +82,16 @@ uv run pytest
 | POST | `/api/ventas/<uuid>/cancelar` | Cancelar venta | 🔐 |
 | GET | `/api/ventas/reporte` | Reporte de ventas | 🔐 Admin |
 
+### Carrito (Redis)
+
+| Método | Endpoint | Descripción | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/carrito` | Ver carrito actual | 🔐 |
+| POST | `/api/carrito/items` | Agregar producto | 🔐 |
+| DELETE | `/api/carrito/items/<uuid>` | Eliminar producto | 🔐 |
+| DELETE | `/api/carrito` | Vaciar carrito | 🔐 |
+| POST | `/api/carrito/checkout` | Convertir a venta | 🔐 |
+
 ### Health Check
 
 ```bash
