@@ -80,9 +80,29 @@ export function Sales() {
 
     /**
      * Agrega un producto al carrito.
+     * Valida que no se exceda el stock disponible.
      */
     const handleAgregarProducto = async (producto: Producto) => {
         setError(null);
+        
+        // Verificar si el producto ya está en el carrito
+        const itemEnCarrito = carrito?.items.find(item => item.producto_id === producto.uuid);
+        
+        // Validar stock disponible
+        if (itemEnCarrito) {
+            // Si ya está en el carrito, verificar que no se exceda el stock
+            if (itemEnCarrito.cantidad >= producto.stock) {
+                setError(`No puedes agregar más unidades. Stock disponible: ${producto.stock}`);
+                return;
+            }
+        } else {
+            // Si no está en el carrito, verificar que haya stock
+            if (producto.stock <= 0) {
+                setError(`Producto sin stock disponible`);
+                return;
+            }
+        }
+        
         try {
             await agregarAlCarrito(producto.uuid, 1);
             await cargarCarrito();
@@ -96,6 +116,21 @@ export function Sales() {
                 setError('Error al agregar producto');
             }
         }
+    };
+
+    /**
+     * Verifica si se puede agregar más cantidad de un producto al carrito.
+     */
+    const puedeAgregarMas = (producto: Producto): boolean => {
+        const itemEnCarrito = carrito?.items.find(item => item.producto_id === producto.uuid);
+        
+        if (!itemEnCarrito) {
+            // Si no está en el carrito, solo verificar que haya stock
+            return producto.stock > 0;
+        }
+        
+        // Si está en el carrito, verificar que la cantidad no exceda el stock
+        return itemEnCarrito.cantidad < producto.stock;
     };
 
     /**
@@ -285,30 +320,33 @@ export function Sales() {
                                         <p>No se encontraron productos</p>
                                     </div>
                                 ) : (
-                                    productosFiltrados.map((producto) => (
-                                        <ProductCard
-                                            key={producto.uuid}
-                                            producto={producto}
-                                            onClick={() => producto.stock > 0 && handleAgregarProducto(producto)}
-                                            variant={producto.stock <= 0 ? 'no-hover' : 'default'}
-                                            className={producto.stock <= 0 ? 'out-of-stock' : ''}
-                                            actions={producto.stock > 0 && (
-                                                <button
-                                                    className="sales-product-add-btn"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleAgregarProducto(producto);
-                                                    }}
-                                                >
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                                                        <line x1="3" y1="6" x2="21" y2="6" />
-                                                        <path d="M16 10a4 4 0 0 1-8 0" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                        />
-                                    ))
+                                    productosFiltrados.map((producto) => {
+                                        const puedeAgregar = puedeAgregarMas(producto);
+                                        return (
+                                            <ProductCard
+                                                key={producto.uuid}
+                                                producto={producto}
+                                                onClick={() => puedeAgregar && handleAgregarProducto(producto)}
+                                                variant={!puedeAgregar ? 'no-hover' : 'default'}
+                                                className={!puedeAgregar ? 'out-of-stock' : ''}
+                                                actions={puedeAgregar && (
+                                                    <button
+                                                        className="sales-product-add-btn"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAgregarProducto(producto);
+                                                        }}
+                                                    >
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                                            <line x1="3" y1="6" x2="21" y2="6" />
+                                                            <path d="M16 10a4 4 0 0 1-8 0" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            />
+                                        );
+                                    })
                                 )}
                             </div>
                         </div>
