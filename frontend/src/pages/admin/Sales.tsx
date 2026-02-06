@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 
-import { listarProductos, obtenerUrlImagenProducto } from '../../api/products.api';
+import { listarProductos } from '../../api/products.api';
 import type { Producto } from '../../api/products.api';
 import {
     obtenerCarrito,
@@ -18,6 +18,7 @@ import {
 import type { Carrito, ItemCarrito } from '../../api/sales.api';
 import { ApiException } from '../../api/client';
 import { AdminNavbar } from '../../components/layout/AdminNavbar';
+import { ProductCard } from '../../components/common/ProductCard';
 import './Sales.css';
 
 /**
@@ -266,7 +267,7 @@ export function Sales() {
                                     <input
                                         type="text"
                                         className="input"
-                                        placeholder="Buscar por nombre o código..."
+                                        placeholder="Buscar producto por nombre o código..."
                                         value={busqueda}
                                         onChange={(e) => setBusqueda(e.target.value)}
                                     />
@@ -285,49 +286,28 @@ export function Sales() {
                                     </div>
                                 ) : (
                                     productosFiltrados.map((producto) => (
-                                        <div
+                                        <ProductCard
                                             key={producto.uuid}
-                                            className={`sales-product-item ${producto.stock <= 0 ? 'out-of-stock' : ''}`}
+                                            producto={producto}
                                             onClick={() => producto.stock > 0 && handleAgregarProducto(producto)}
-                                        >
-                                            <div className="sales-product-image">
-                                                {producto.imagen_uuid ? (
-                                                    <img
-                                                        src={obtenerUrlImagenProducto(producto.uuid)}
-                                                        alt={producto.nombre}
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).style.display = 'none';
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                                        <circle cx="8.5" cy="8.5" r="1.5" />
-                                                        <polyline points="21 15 16 10 5 21" />
-                                                    </svg>
-                                                )}
-                                            </div>
-                                            <div className="sales-product-info">
-                                                <span className="sales-product-name">{producto.nombre}</span>
-                                                <span className="sales-product-barcode">{producto.barcode}</span>
-                                            </div>
-                                            <div className="sales-product-meta">
-                                                <span className="sales-product-price">
-                                                    {formatearMoneda(producto.valor_unitario)}
-                                                </span>
-                                                <span className={`sales-product-stock ${producto.stock <= 5 ? 'low' : ''}`}>
-                                                    {producto.stock} unid.
-                                                </span>
-                                            </div>
-                                            {producto.stock > 0 && (
-                                                <div className="sales-product-add">
+                                            variant={producto.stock <= 0 ? 'no-hover' : 'default'}
+                                            className={producto.stock <= 0 ? 'out-of-stock' : ''}
+                                            actions={producto.stock > 0 && (
+                                                <button
+                                                    className="sales-product-add-btn"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAgregarProducto(producto);
+                                                    }}
+                                                >
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <line x1="12" y1="5" x2="12" y2="19" />
-                                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                                        <line x1="3" y1="6" x2="21" y2="6" />
+                                                        <path d="M16 10a4 4 0 0 1-8 0" />
                                                     </svg>
-                                                </div>
+                                                </button>
                                             )}
-                                        </div>
+                                        />
                                     ))
                                 )}
                             </div>
@@ -346,9 +326,13 @@ export function Sales() {
                                 </h2>
                                 {carrito && carrito.items.length > 0 && (
                                     <button
-                                        className="btn btn-secondary btn-sm"
+                                        className="btn btn-secondary"
                                         onClick={handleVaciarCarrito}
                                     >
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <polyline points="3 6 5 6 21 6" />
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                        </svg>
                                         Vaciar
                                     </button>
                                 )}
@@ -394,9 +378,9 @@ export function Sales() {
                                                     +
                                                 </button>
                                             </div>
-                                            <div className="sales-cart-item-subtotal">
+                                            <span className="sales-cart-item-subtotal">
                                                 {formatearMoneda(item.subtotal)}
-                                            </div>
+                                            </span>
                                             <button
                                                 className="sales-cart-item-remove"
                                                 onClick={() => handleEliminarItem(item)}

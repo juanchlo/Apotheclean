@@ -17,6 +17,7 @@ import {
 import type { Producto, CrearProductoInput, ActualizarProductoInput } from '../../api/products.api';
 import { ApiException } from '../../api/client';
 import { AdminNavbar } from '../../components/layout/AdminNavbar';
+import { ProductCard } from '../../components/common/ProductCard';
 import './Products.css';
 
 /**
@@ -400,17 +401,7 @@ export function Products() {
         setTimeout(() => setExito(null), 3000);
     };
 
-    /**
-     * Formatea un valor en COP.
-     */
-    const formatearMoneda = (valor: string | number): string => {
-        const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
-        return new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0
-        }).format(numero);
-    };
+
 
     return (
         <div className="products-page">
@@ -512,43 +503,12 @@ export function Products() {
                                 </div>
                             ) : (
                                 (vistaArchivados ? archivadosFiltrados : productosFiltrados).map((producto) => (
-                                    <div
+                                    <ProductCard
                                         key={producto.uuid}
-                                        className={`product-card ${vistaArchivados ? 'archived' : ''}`}
+                                        producto={producto}
                                         onClick={() => !vistaArchivados && abrirModalProducto(producto)}
-                                    >
-                                        <div className="product-card-image">
-                                            {producto.imagen_uuid ? (
-                                                <img
-                                                    src={obtenerUrlImagenProducto(producto.uuid)}
-                                                    alt={producto.nombre}
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f0f0f0" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%23999" font-size="10">Sin imagen</text></svg>';
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="product-card-placeholder">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                                                        <circle cx="8.5" cy="8.5" r="1.5" />
-                                                        <polyline points="21 15 16 10 5 21" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="product-card-info">
-                                            <h3 className="product-card-name">{producto.nombre}</h3>
-                                            <p className="product-card-barcode">{producto.barcode}</p>
-                                            <div className="product-card-meta">
-                                                <span className="product-card-price">
-                                                    {formatearMoneda(producto.valor_unitario)}
-                                                </span>
-                                                <span className={`product-card-stock ${producto.stock <= 5 ? 'low' : ''}`}>
-                                                    {producto.stock} unid.
-                                                </span>
-                                            </div>
-                                        </div>
-                                        {vistaArchivados && (
+                                        variant={vistaArchivados ? 'archived' : 'default'}
+                                        actions={vistaArchivados && (
                                             <button
                                                 className="btn btn-secondary product-card-restore"
                                                 onClick={(e) => {
@@ -559,7 +519,7 @@ export function Products() {
                                                 Restaurar
                                             </button>
                                         )}
-                                    </div>
+                                    />
                                 ))
                             )}
                         </div>
@@ -658,7 +618,10 @@ export function Products() {
                                         />
                                     ) : (
                                         <p className="product-modal-value">
-                                            {formatearMoneda(productoSeleccionado.valor_unitario)}
+                                            {typeof productoSeleccionado.valor_unitario === 'string'
+                                                ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(parseFloat(productoSeleccionado.valor_unitario))
+                                                : new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(productoSeleccionado.valor_unitario)
+                                            }
                                         </p>
                                     )}
                                 </div>
