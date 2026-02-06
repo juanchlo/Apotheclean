@@ -4,14 +4,13 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { obtenerReporteVentas } from '../../api/sales.api';
 import type { Venta, ReporteVentasParams, ItemVenta } from '../../api/sales.api';
-import { obtenerUsuarioActual, logout } from '../../api/auth.api';
 import { obtenerProductosBatch, obtenerUrlImagenProducto } from '../../api/products.api';
 import type { Producto } from '../../api/products.api';
 import { ApiException } from '../../api/client';
+import { AdminNavbar } from '../../components/layout/AdminNavbar';
 import './Reports.css';
 
 /** Colores para el gráfico pie */
@@ -35,9 +34,6 @@ interface TooltipPosition {
  * Incluye filtros, gráfico y tabla de ventas.
  */
 export function Reports() {
-    const navigate = useNavigate();
-    const usuario = obtenerUsuarioActual();
-
     // Estado de filtros
     const [fechaInicio, setFechaInicio] = useState('');
     const [fechaFin, setFechaFin] = useState('');
@@ -56,9 +52,6 @@ export function Reports() {
     // Estado de paginación
     const [limite] = useState(10);
     const [offset, setOffset] = useState(0);
-
-    // Estado del menú de usuario
-    const [menuAbierto, setMenuAbierto] = useState(false);
 
     // Estado del modal de detalle
     const [ventaSeleccionada, setVentaSeleccionada] = useState<Venta | null>(null);
@@ -132,14 +125,6 @@ export function Reports() {
         setModalidad('');
         setEstado('');
         setOffset(0);
-    };
-
-    /**
-     * Maneja el logout del usuario.
-     */
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
     };
 
     /**
@@ -269,58 +254,8 @@ export function Reports() {
     return (
         <div className="reports-page">
             {/* Header */}
-            <header className="reports-header">
-                <div className="reports-header-content">
-                    {/* Logo */}
-                    <div className="reports-logo">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                            <path d="M2 17l10 5 10-5" />
-                            <path d="M2 12l10 5 10-5" />
-                        </svg>
-                        <span>Apotheclean</span>
-                    </div>
-
-                    {/* Navegación */}
-                    <nav className="reports-nav">
-                        <a href="/admin/reportes" className="reports-nav-link active">
-                            Reportes
-                        </a>
-                        <a href="/admin/productos" className="reports-nav-link">
-                            Productos
-                        </a>
-                        <a href="/admin/ventas" className="reports-nav-link">
-                            Ventas
-                        </a>
-                    </nav>
-
-                    {/* Menú de usuario */}
-                    <div className="reports-user">
-                        <button
-                            className="reports-user-button"
-                            onClick={() => setMenuAbierto(!menuAbierto)}
-                        >
-                            Bienvenido a Apotheclean, {usuario?.nombre}
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                        </button>
-
-                        {menuAbierto && (
-                            <div className="reports-user-menu">
-                                <button onClick={handleLogout} className="reports-user-menu-item">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                        <polyline points="16 17 21 12 16 7" />
-                                        <line x1="21" y1="12" x2="9" y2="12" />
-                                    </svg>
-                                    Cerrar sesión
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </header>
+            {/* Header */}
+            <AdminNavbar />
 
             {/* Contenido principal */}
             <main className="reports-main">

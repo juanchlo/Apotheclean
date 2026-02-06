@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
     listarProductos,
     crearProducto,
@@ -16,8 +15,8 @@ import {
     restaurarProducto as restaurarProductoApi
 } from '../../api/products.api';
 import type { Producto, CrearProductoInput, ActualizarProductoInput } from '../../api/products.api';
-import { obtenerUsuarioActual, logout } from '../../api/auth.api';
 import { ApiException } from '../../api/client';
+import { AdminNavbar } from '../../components/layout/AdminNavbar';
 import './Products.css';
 
 /**
@@ -25,9 +24,6 @@ import './Products.css';
  * Incluye listado con búsqueda, creación, edición y archivo.
  */
 export function Products() {
-    const navigate = useNavigate();
-    const usuario = obtenerUsuarioActual();
-
     // Estado de productos
     const [productos, setProductos] = useState<Producto[]>([]);
     const [productosArchivados, setProductosArchivados] = useState<Producto[]>([]);
@@ -40,9 +36,6 @@ export function Products() {
 
     // Estado de vista (activos o archivados)
     const [vistaArchivados, setVistaArchivados] = useState(false);
-
-    // Estado del menú de usuario
-    const [menuAbierto, setMenuAbierto] = useState(false);
 
     // Estado del modal de edición
     const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
@@ -122,14 +115,6 @@ export function Products() {
             p.barcode.toLowerCase().includes(termino)
         );
     });
-
-    /**
-     * Maneja el logout del usuario.
-     */
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
 
     /**
      * Abre el modal de visualización de producto.
@@ -430,58 +415,8 @@ export function Products() {
     return (
         <div className="products-page">
             {/* Header */}
-            <header className="products-header">
-                <div className="products-header-content">
-                    {/* Logo */}
-                    <div className="products-logo">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                            <path d="M2 17l10 5 10-5" />
-                            <path d="M2 12l10 5 10-5" />
-                        </svg>
-                        <span>Apotheclean</span>
-                    </div>
-
-                    {/* Navegación */}
-                    <nav className="products-nav">
-                        <a href="/admin/reportes" className="products-nav-link">
-                            Reportes
-                        </a>
-                        <a href="/admin/productos" className="products-nav-link active">
-                            Productos
-                        </a>
-                        <a href="/admin/ventas" className="products-nav-link">
-                            Ventas
-                        </a>
-                    </nav>
-
-                    {/* Menú de usuario */}
-                    <div className="products-user">
-                        <button
-                            className="products-user-button"
-                            onClick={() => setMenuAbierto(!menuAbierto)}
-                        >
-                            Bienvenido a Apotheclean, {usuario?.nombre}
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                        </button>
-
-                        {menuAbierto && (
-                            <div className="products-user-menu">
-                                <button onClick={handleLogout} className="products-user-menu-item">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                        <polyline points="16 17 21 12 16 7" />
-                                        <line x1="21" y1="12" x2="9" y2="12" />
-                                    </svg>
-                                    Cerrar sesión
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </header>
+            {/* Header */}
+            <AdminNavbar />
 
             {/* Contenido principal */}
             <main className="products-main">

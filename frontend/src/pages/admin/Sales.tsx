@@ -3,8 +3,8 @@
  * Permite buscar productos, agregarlos al carrito y confirmar ventas.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+
 import { listarProductos, obtenerUrlImagenProducto } from '../../api/products.api';
 import type { Producto } from '../../api/products.api';
 import {
@@ -16,8 +16,8 @@ import {
     completarVenta
 } from '../../api/sales.api';
 import type { Carrito, ItemCarrito } from '../../api/sales.api';
-import { obtenerUsuarioActual, logout } from '../../api/auth.api';
 import { ApiException } from '../../api/client';
+import { AdminNavbar } from '../../components/layout/AdminNavbar';
 import './Sales.css';
 
 /**
@@ -25,9 +25,6 @@ import './Sales.css';
  * Incluye búsqueda de productos, carrito y checkout.
  */
 export function Sales() {
-    const navigate = useNavigate();
-    const usuario = obtenerUsuarioActual();
-
     // Estado de productos
     const [productos, setProductos] = useState<Producto[]>([]);
     const [busqueda, setBusqueda] = useState('');
@@ -40,7 +37,6 @@ export function Sales() {
     const [cargandoCarrito, setCargandoCarrito] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [exito, setExito] = useState<string | null>(null);
-    const [menuAbierto, setMenuAbierto] = useState(false);
     const [procesandoVenta, setProcesandoVenta] = useState(false);
 
     // Cargar productos al montar
@@ -209,14 +205,6 @@ export function Sales() {
     };
 
     /**
-     * Cierra sesión.
-     */
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    /**
      * Formatea un valor en COP.
      */
     const formatearMoneda = (valor: string | number): string => {
@@ -237,49 +225,8 @@ export function Sales() {
     return (
         <div className="sales-page">
             {/* Header */}
-            <header className="sales-header">
-                <div className="sales-header-content">
-                    <div className="sales-logo">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                            <path d="M2 17l10 5 10-5" />
-                            <path d="M2 12l10 5 10-5" />
-                        </svg>
-                        <span>Apotheclean</span>
-                    </div>
-
-                    <nav className="sales-nav">
-                        <a href="/admin/reportes" className="sales-nav-link">Reportes</a>
-                        <a href="/admin/productos" className="sales-nav-link">Productos</a>
-                        <a href="/admin/ventas" className="sales-nav-link active">Ventas</a>
-                    </nav>
-
-                    <div className="sales-user">
-                        <button
-                            className="sales-user-button"
-                            onClick={() => setMenuAbierto(!menuAbierto)}
-                        >
-                            Bienvenido a Apotheclean, {usuario?.nombre}
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                        </button>
-
-                        {menuAbierto && (
-                            <div className="sales-user-menu">
-                                <button onClick={handleLogout} className="sales-user-menu-item">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                        <polyline points="16 17 21 12 16 7" />
-                                        <line x1="21" y1="12" x2="9" y2="12" />
-                                    </svg>
-                                    Cerrar sesión
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </header>
+            {/* Header */}
+            <AdminNavbar />
 
             {/* Contenido principal */}
             <main className="sales-main">
