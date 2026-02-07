@@ -22,7 +22,8 @@ from src.infraestructure.adapters.sqlalchemy_producto_repository import SQLAlche
 from src.infraestructure.adapters.sqlalchemy_venta_repository import SQLAlchemyVentaRepository
 from src.infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
 from src.infraestructure.storage.filesystem_image_adapter import FilesystemImageAdapter
-from src.infraestructure.cache.config import crear_carrito_adapter
+from src.infraestructure.cache.config import crear_carrito_adapter, obtener_config_redis
+from src.infraestructure.cache.redis_blacklist_adapter import RedisBlacklistAdapter
 
 from src.infraestructure.api.routes.auth import auth_bp
 from src.infraestructure.api.routes.productos import productos_bp
@@ -87,7 +88,15 @@ def crear_app(config: Optional[dict] = None) -> Flask:
     # Inyectar dependencias
     logger.info("Configurando dependencias...")
 
-    app.config["AUTH_SERVICE"] = JwtAuthAdapter()
+    redis_config = obtener_config_redis()
+    blacklist_adapter = RedisBlacklistAdapter(
+        host=redis_config["host"],
+        port=redis_config["port"],
+        db=2,
+        password=redis_config["password"]
+    )
+    
+    app.config["AUTH_SERVICE"] = JwtAuthAdapter(blacklist_adapter=blacklist_adapter)
     app.config["IMAGE_STORAGE"] = FilesystemImageAdapter()
 
     app.config["USUARIO_REPO"] = SQLAlchemyUsuarioRepository(session)

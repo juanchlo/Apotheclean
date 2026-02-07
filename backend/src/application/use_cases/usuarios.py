@@ -107,15 +107,15 @@ class LoginUsuario:
         self.usuario_repo = usuario_repo
         self.auth_service = auth_service
 
-    def ejecutar(self, datos: LoginUsuarioInput) -> str:
+    def ejecutar(self, datos: LoginUsuarioInput) -> dict:
         """
-        Autentica un usuario y retorna un token JWT.
+        Autentica un usuario y retorna tokens JWT.
 
         Args:
             datos: Credenciales del usuario (password + username o email)
 
         Returns:
-            Token JWT para autenticación en requests posteriores
+            dict: { "access_token": "...", "refresh_token": "..." }
 
         Raises:
             ValueError: Si las credenciales son inválidas o el usuario está deshabilitado
@@ -137,7 +137,7 @@ class LoginUsuario:
         if not self.auth_service.verificar_password(datos.password, usuario_db.password_hash):
             raise ValueError("Credenciales incorrectas")
 
-        return self.auth_service.generar_token(usuario_db)
+        return self.auth_service.generar_tokens(usuario_db)
 
 
 class DeshabilitarUsuario:

@@ -37,10 +37,9 @@ def _obtener_usuario_id() -> UUID:
         UUID del usuario
     """
     usuario = g.usuario
-    uuid_val = usuario["uuid"]
-    if isinstance(uuid_val, UUID):
-        return uuid_val
-    return UUID(uuid_val)
+    if isinstance(usuario.uuid, str):
+        return UUID(usuario.uuid)
+    return usuario.uuid
 
 
 def carrito_a_dict(carrito) -> dict:
@@ -82,7 +81,7 @@ def obtener_carrito():
     usuario = g.usuario
     usuario_id = _obtener_usuario_id()
 
-    logger.info("GET /api/carrito - usuario: %s", usuario["username"])
+    logger.info("GET /api/carrito - usuario: %s", usuario.username)
 
     try:
         carrito_cache = current_app.config["CARRITO_CACHE"]
@@ -126,7 +125,7 @@ def agregar_item():
 
     logger.info(
         "POST /api/carrito/items - usuario: %s, producto: %s, cantidad: %s",
-        usuario["username"], datos.get("producto_id"), datos.get("cantidad")
+        usuario.username, datos.get("producto_id"), datos.get("cantidad")
     )
 
     # Validar campos requeridos
@@ -170,7 +169,7 @@ def agregar_item():
             cantidad=cantidad
         ))
 
-        logger.info("Item agregado al carrito de %s", usuario["username"])
+        logger.info("Item agregado al carrito de %s", usuario.username)
 
         return jsonify({
             "mensaje": "Producto agregado al carrito",
@@ -215,7 +214,7 @@ def eliminar_item(producto_uuid: str):
 
     logger.info(
         "DELETE /api/carrito/items/%s - usuario: %s, cantidad: %s",
-        producto_uuid, usuario["username"], cantidad
+        producto_uuid, usuario.username, cantidad
     )
 
     try:
@@ -232,7 +231,7 @@ def eliminar_item(producto_uuid: str):
         eliminar = EliminarDelCarrito(carrito_cache)
         eliminar.ejecutar(usuario_id, producto_id, cantidad)
 
-        logger.info("Item eliminado del carrito de %s", usuario["username"])
+        logger.info("Item eliminado del carrito de %s", usuario.username)
 
         return jsonify({
             "mensaje": "Producto eliminado del carrito",
@@ -266,7 +265,7 @@ def vaciar_carrito():
     usuario = g.usuario
     usuario_id = _obtener_usuario_id()
 
-    logger.info("DELETE /api/carrito - usuario: %s", usuario["username"])
+    logger.info("DELETE /api/carrito - usuario: %s", usuario.username)
 
     try:
         carrito_cache = current_app.config["CARRITO_CACHE"]
@@ -274,7 +273,7 @@ def vaciar_carrito():
         vaciar = VaciarCarrito(carrito_cache)
         vaciar.ejecutar(usuario_id)
 
-        logger.info("Carrito vaciado para %s", usuario["username"])
+        logger.info("Carrito vaciado para %s", usuario.username)
 
         return jsonify({
             "mensaje": "Carrito vaciado exitosamente"
@@ -307,7 +306,7 @@ def checkout():
 
     logger.info(
         "POST /api/carrito/checkout - usuario: %s, modalidad: %s",
-        usuario["username"], datos.get("modalidad")
+        usuario.username, datos.get("modalidad")
     )
 
     # Validar modalidad

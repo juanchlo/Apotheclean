@@ -80,7 +80,7 @@ def crear_venta():
 
     logger.info(
         "POST /api/ventas - usuario: %s, items: %d",
-        usuario["username"],
+        usuario.username,
         len(datos.get("items", []))
     )
 
@@ -138,7 +138,7 @@ def crear_venta():
         venta = crear.ejecutar(CrearVentaInput(
             items=items,
             modalidad=modalidad,
-            comprador_id=usuario["uuid"]
+            comprador_id=usuario.uuid
         ))
 
         current_app.config["SESSION"].commit()

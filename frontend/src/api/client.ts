@@ -1,6 +1,6 @@
 /**
  * Cliente HTTP centralizado para comunicación con el backend.
- * Maneja autenticación JWT, errores y reintentos.
+ * Maneja autenticación JWT, errores, reintentos y renovación de tokens.
  */
 
 /** URL base de la API */
@@ -8,6 +8,8 @@ const API_BASE = '/api';
 
 /** Clave para almacenar el token JWT en localStorage */
 const TOKEN_KEY = 'apotheclean_token';
+/** Clave para almacenar el refresh token en localStorage */
+const REFRESH_TOKEN_KEY = 'apotheclean_refresh_token';
 
 /** Interfaz de respuesta de error de la API */
 interface ApiError {
@@ -33,7 +35,7 @@ export class ApiException extends Error {
 }
 
 /**
- * Obtiene el token JWT almacenado.
+ * Obtiene el token JWT (Access Token) almacenado.
  * @returns Token JWT o null si no existe
  */
 export function obtenerToken(): string | null {
@@ -41,18 +43,31 @@ export function obtenerToken(): string | null {
 }
 
 /**
- * Almacena el token JWT.
- * @param token - Token JWT a almacenar
+ * Obtiene el Refresh Token almacenado.
+ * @returns Refresh Token o null si no existe
  */
-export function guardarToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
+export function obtenerRefreshToken(): string | null {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
 /**
- * Elimina el token JWT almacenado (logout).
+ * Almacena los tokens JWT.
+ * @param accessToken - Token de acceso
+ * @param refreshToken - Token de refresco (opcional)
+ */
+export function guardarToken(accessToken: string, refreshToken?: string): void {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    if (refreshToken) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
+}
+
+/**
+ * Elimina los tokens almacenados (logout local).
  */
 export function eliminarToken(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 /**
@@ -89,7 +104,7 @@ export function tokenExpirado(token: string): boolean {
  * @returns Headers configurados
  */
 function construirHeaders(incluirAuth: boolean = true): HeadersInit {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
 
@@ -104,6 +119,70 @@ function construirHeaders(incluirAuth: boolean = true): HeadersInit {
 }
 
 /**
+ * Intenta renovar el access token usando el refresh token.
+ * @returns Nuevo access token o null si falla.
+ */
+async function renovarToken(): Promise<string | null> {
+    const refreshToken = obtenerRefreshToken();
+    if (!refreshToken) return null;
+
+    try {
+        const response = await fetch(`${API_BASE}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Guardar nuevos tokens (access + refresh rotado)
+            guardarToken(data.access_token, data.refresh_token);
+            return data.access_token;
+        } else {
+            // Si el refresh falla (expirado, revocado), limpiamos todo
+            eliminarToken();
+            return null;
+        }
+    } catch (error) {
+        console.error("Error renovando token:", error);
+        return null;
+    }
+}
+
+/**
+ * Wrapper sobre fetch para manejar intercepción de 401 y renovación de tokens.
+ */
+async function fetchConInterceptor(
+    url: string,
+    options: RequestInit,
+    requiereAuth: boolean = true
+): Promise<Response> {
+    // 1. Primer intento
+    let response = await fetch(url, options);
+
+    // 2. Si es 401 y requiere auth, intentar refresh
+    if (response.status === 401 && requiereAuth) {
+        const nuevoToken = await renovarToken();
+
+        if (nuevoToken) {
+            // Reintentar con nuevo token
+            const nuevosHeaders = construirHeaders(true);
+            const nuevasOpciones = {
+                ...options,
+                headers: nuevosHeaders
+            };
+            response = await fetch(url, nuevasOpciones);
+        } else {
+            // Si no se pudo renovar, redirigir a login
+            eliminarToken();
+            window.location.href = '/login';
+        }
+    }
+
+    return response;
+}
+
+/**
  * Maneja la respuesta de la API y lanza excepciones en caso de error.
  * @param response - Respuesta fetch
  * @returns Datos JSON de la respuesta
@@ -113,12 +192,6 @@ async function manejarRespuesta<T>(response: Response): Promise<T> {
 
     if (!response.ok) {
         const error = data as ApiError;
-
-        // Si es 401, limpiar token y redirigir a login
-        if (response.status === 401) {
-            eliminarToken();
-            window.location.href = '/login';
-        }
 
         throw new ApiException(
             error.error || 'Error desconocido',
@@ -132,10 +205,6 @@ async function manejarRespuesta<T>(response: Response): Promise<T> {
 
 /**
  * Realiza una petición GET a la API.
- * @param endpoint - Endpoint de la API (sin /api)
- * @param params - Parámetros de query opcionales
- * @param auth - Si requiere autenticación (default: true)
- * @returns Datos de la respuesta
  */
 export async function get<T>(
     endpoint: string,
@@ -150,70 +219,59 @@ export async function get<T>(
         });
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetchConInterceptor(url.toString(), {
         method: 'GET',
         headers: construirHeaders(auth),
-    });
+    }, auth);
 
     return manejarRespuesta<T>(response);
 }
 
 /**
  * Realiza una petición POST a la API.
- * @param endpoint - Endpoint de la API (sin /api)
- * @param body - Cuerpo de la petición
- * @param auth - Si requiere autenticación (default: true)
- * @returns Datos de la respuesta
  */
 export async function post<T>(
     endpoint: string,
     body: Record<string, unknown>,
     auth: boolean = true
 ): Promise<T> {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetchConInterceptor(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: construirHeaders(auth),
         body: JSON.stringify(body),
-    });
+    }, auth);
 
     return manejarRespuesta<T>(response);
 }
 
 /**
  * Realiza una petición PUT a la API.
- * @param endpoint - Endpoint de la API (sin /api)
- * @param body - Cuerpo de la petición
- * @param auth - Si requiere autenticación (default: true)
- * @returns Datos de la respuesta
  */
 export async function put<T>(
     endpoint: string,
     body: Record<string, unknown>,
     auth: boolean = true
 ): Promise<T> {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetchConInterceptor(`${API_BASE}${endpoint}`, {
         method: 'PUT',
         headers: construirHeaders(auth),
         body: JSON.stringify(body),
-    });
+    }, auth);
 
     return manejarRespuesta<T>(response);
 }
 
 /**
  * Realiza una petición DELETE a la API.
- * @param endpoint - Endpoint de la API (sin /api)
- * @param auth - Si requiere autenticación (default: true)
- * @returns Datos de la respuesta
  */
 export async function del<T>(
     endpoint: string,
     auth: boolean = true
 ): Promise<T> {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetchConInterceptor(`${API_BASE}${endpoint}`, {
         method: 'DELETE',
         headers: construirHeaders(auth),
-    });
+    }, auth);
 
     return manejarRespuesta<T>(response);
 }

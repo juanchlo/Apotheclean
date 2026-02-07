@@ -8,7 +8,7 @@ import logging
 from functools import wraps
 from typing import Callable, Optional
 
-from flask import request, jsonify, g
+from flask import request, jsonify, g, current_app
 
 from src.infraestructure.auth.jwt_auth_adapter import JwtAuthAdapter
 from src.domain.entities import RolUsuario
@@ -19,14 +19,12 @@ logger = logging.getLogger(__name__)
 
 def obtener_auth_service() -> JwtAuthAdapter:
     """
-    Obtiene el servicio de autenticación.
+    Obtiene el servicio de autenticación desde la configuración de la app.
 
     Returns:
         JwtAuthAdapter: Servicio de autenticación configurado.
     """
-    if not hasattr(g, "auth_service"):
-        g.auth_service = JwtAuthAdapter()
-    return g.auth_service
+    return current_app.config["AUTH_SERVICE"]
 
 
 def extraer_token() -> Optional[str]:
@@ -46,14 +44,7 @@ def requiere_auth(f: Callable) -> Callable:
     """
     Decorador que requiere autenticación JWT válida.
 
-    Verifica que el request contenga un token JWT válido en el header
-    Authorization. Si es válido, almacena los datos del usuario en g.usuario.
-
-    Args:
-        f: Función a decorar.
-
-    Returns:
-        Función decorada que verifica autenticación.
+    Verifica token y estado del usuario en base de datos.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -67,24 +58,51 @@ def requiere_auth(f: Callable) -> Callable:
             }), 401
 
         auth_service = obtener_auth_service()
-        datos_usuario = auth_service.verificar_token(token)
+        
+        # 1. Verificar firma y validez del token (solo Access Tokens)
+        payload = auth_service.verificar_token(token, tipo_esperado="access")
 
-        if not datos_usuario:
+        if not payload:
             logger.warning("Intento de acceso con token inválido o expirado")
             return jsonify({
                 "error": "Token inválido o expirado",
                 "codigo": "TOKEN_INVALID"
             }), 401
 
-        # Almacenar datos del usuario en el contexto de Flask
-        g.usuario = datos_usuario
-        g.token = token
+        # 2. Consultar usuario en DB para asegurar que sigue activo/existente
+        # Esto es un patrón "Stateful", más seguro que confiar ciegamente en el token stateless
+        try:
+            from uuid import UUID
+            uuid_usuario = UUID(payload["sub"]) # convertir string a UUID object
+            usuario_repo = current_app.config["USUARIO_REPO"]
+            usuario = usuario_repo.obtener_por_uuid(uuid_usuario)
+            
+            if not usuario:
+                logger.warning("Token válido pero usuario %s no encontrado en DB", uuid_usuario)
+                return jsonify({
+                    "error": "Usuario no encontrado",
+                    "codigo": "USER_NOT_FOUND"
+                }), 401
+                
+            if not usuario.activo:
+                logger.warning("Intento de acceso de usuario inactivo %s", usuario.username)
+                return jsonify({
+                    "error": "Usuario inactivo",
+                    "codigo": "USER_INACTIVE"
+                }), 401
 
-        logger.debug(
-            "Usuario autenticado: %s (rol: %s)",
-            datos_usuario["username"],
-            datos_usuario["rol"].value
-        )
+            # Almacenar entidad usuario completa
+            g.usuario = usuario
+            g.token = token
+            
+            logger.debug("Usuario autenticado: %s", usuario.username)
+
+        except Exception as e:
+            logger.error("Error validando usuario en DB: %s", str(e))
+            return jsonify({
+                "error": "Error interno de autenticación",
+                "codigo": "AUTH_ERROR"
+            }), 500
 
         return f(*args, **kwargs)
 
@@ -94,19 +112,9 @@ def requiere_auth(f: Callable) -> Callable:
 def requiere_admin(f: Callable) -> Callable:
     """
     Decorador que requiere rol de administrador.
-
-    Debe usarse después de @requiere_auth. Verifica que el usuario
-    autenticado tenga rol de administrador.
-
-    Args:
-        f: Función a decorar.
-
-    Returns:
-        Función decorada que verifica rol admin.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
-        # Verificar que el usuario está autenticado
         if not hasattr(g, "usuario"):
             logger.error("@requiere_admin usado sin @requiere_auth previo")
             return jsonify({
@@ -116,10 +124,10 @@ def requiere_admin(f: Callable) -> Callable:
 
         usuario = g.usuario
 
-        if usuario["rol"] != RolUsuario.ADMIN:
+        if usuario.rol != RolUsuario.ADMIN:
             logger.warning(
                 "Usuario %s intentó acceder a recurso de admin",
-                usuario["username"]
+                usuario.username
             )
             return jsonify({
                 "error": "Acceso denegado. Se requiere rol de administrador",

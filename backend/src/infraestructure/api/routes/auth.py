@@ -147,7 +147,7 @@ def login():
             password=datos["password"]
         )
 
-        token = login_uc.ejecutar(input_data)
+        tokens = login_uc.ejecutar(input_data)
 
         logger.info(
             "Login exitoso para usuario: %s",
@@ -156,7 +156,8 @@ def login():
 
         return jsonify({
             "mensaje": "Login exitoso",
-            "token": token
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"]
         }), 200
 
     except ValueError as e:
@@ -168,6 +169,111 @@ def login():
 
     except Exception as e:
         logger.error("Error inesperado en login: %s", str(e))
+        return jsonify({
+            "error": "Error interno del servidor",
+            "codigo": "SERVER_ERROR"
+        }), 500
+
+
+@auth_bp.route("/refresh", methods=["POST"])
+def refresh():
+    """
+    Renueva el Access Token usando un Refresh Token válido.
+
+    Body JSON:
+        refresh_token: Token de refresco
+
+    Returns:
+        200: Nuevo access_token
+        400/401: Token inválido o revocado
+    """
+    datos = request.get_json()
+    refresh_token = datos.get("refresh_token")
+
+    if not refresh_token:
+        return jsonify({
+            "error": "Refresh token requerido",
+            "codigo": "TOKEN_REQUIRED"
+        }), 400
+
+    try:
+        from flask import current_app
+        auth_service = current_app.config["AUTH_SERVICE"]
+
+        # Implementar rotación de tokens
+        from src.application.use_cases.renovar_tokens import RenovarTokensConRotacion, RenovarTokensInput
+        
+        # Inyectar dependencias del caso de uso
+        # Nota: RenovarTokensConRotacion requiere (usuario_repo, auth_service)
+        usuario_repo = current_app.config["USUARIO_REPO"]
+        
+        renovar_uc = RenovarTokensConRotacion(usuario_repo, auth_service)
+        input_data = RenovarTokensInput(refresh_token=refresh_token)
+        
+        resultado = renovar_uc.ejecutar(input_data)
+
+        # Commit de la transacción (por si se revocaron tokens en DB/Redis - aunque redis es inmediato)
+        # pero si actualizamos last_login u otra cosa en DB es necesario
+        current_app.config["SESSION"].commit()
+
+        return jsonify({
+            "mensaje": "Token renovado exitosamente",
+            "access_token": resultado["access_token"],
+            "refresh_token": resultado["refresh_token"]
+        }), 200
+
+    except ValueError as e:
+        logger.warning("Error de validación en refresh token: %s", str(e))
+        return jsonify({
+            "error": str(e),
+            "codigo": "INVALID_TOKEN"
+        }), 401
+
+    except Exception as e:
+        logger.error("Error en refresh token: %s", str(e))
+        return jsonify({
+            "error": "Error interno del servidor",
+            "codigo": "SERVER_ERROR"
+        }), 500
+
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    """
+    Cierra sesión revocado el Refresh Token.
+
+    Body JSON:
+        refresh_token: Token de refresco a revocar
+
+    Returns:
+        200: Logout exitoso
+    """
+    datos = request.get_json()
+    refresh_token = datos.get("refresh_token")
+
+    if not refresh_token:
+        # Si no envían token, igual respondemos ok para no dar pistas,
+        # o bad request. En logout, ser permisivo es aceptable,
+        # pero para consistencia API pediremos el token.
+        return jsonify({
+            "error": "Refresh token requerido para logout seguro",
+            "codigo": "TOKEN_REQUIRED"
+        }), 400
+
+    try:
+        from flask import current_app
+        auth_service = current_app.config["AUTH_SERVICE"]
+
+        auth_service.revocar_token(refresh_token)
+
+        logger.info("Logout realizado (token revocado)")
+
+        return jsonify({
+            "mensaje": "Logout exitoso"
+        }), 200
+
+    except Exception as e:
+        logger.error("Error en logout: %s", str(e))
         return jsonify({
             "error": "Error interno del servidor",
             "codigo": "SERVER_ERROR"

@@ -7,15 +7,17 @@ la generación y verificación de tokens de autenticación.
 
 import logging
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-from uuid import UUID
+
 
 import bcrypt
 import jwt
 
+from src.infraestructure.cache.redis_blacklist_adapter import RedisBlacklistAdapter
 from src.application.ports.auth import IAuth
-from src.domain.entities import Usuario, RolUsuario
+from src.domain.entities import Usuario
 
 
 logger = logging.getLogger(__name__)
@@ -25,30 +27,34 @@ class JwtAuthAdapter(IAuth):
     """
     Adaptador de autenticación que implementa JWT y bcrypt.
 
+    Soporta Access y Refresh Tokens, y revocación mediante Blacklist en Redis.
+
     Atributos:
         secret_key: Clave secreta para firmar tokens JWT.
         algorithm: Algoritmo de encriptación para JWT (default: HS256).
-        token_expiration_hours: Horas de validez del token (default: 24).
+        access_token_expire_minutes: Tiempo de vida del Access Token.
+        refresh_token_expire_days: Tiempo de vida del Refresh Token.
     """
 
     def __init__(
         self,
+        blacklist_adapter: Optional['RedisBlacklistAdapter'] = None,
         secret_key: Optional[str] = None,
         algorithm: str = "HS256",
-        token_expiration_hours: int = 24
+        access_token_expire_minutes: int = 15,
+        refresh_token_expire_days: int = 7
     ):
         """
         Inicializa el adaptador de autenticación.
 
         Args:
-            secret_key: Clave secreta para JWT. Si no se provee, se obtiene
-                       de la variable de entorno JWT_SECRET_KEY.
-            algorithm: Algoritmo de encriptación para JWT.
-            token_expiration_hours: Tiempo de expiración del token en horas.
-
-        Raises:
-            ValueError: Si no se provee secret_key ni existe en variables de entorno.
+            blacklist_adapter: Adaptador para verificar tokens revocados.
+            secret_key: Clave secreta para JWT.
+            algorithm: Algoritmo de encriptación.
+            access_token_expire_minutes: TTL Access Token (minutos).
+            refresh_token_expire_days: TTL Refresh Token (días).
         """
+        self._blacklist = blacklist_adapter
         self._secret_key = secret_key or os.getenv("JWT_SECRET_KEY")
         if not self._secret_key:
             raise ValueError(
@@ -56,151 +62,240 @@ class JwtAuthAdapter(IAuth):
             )
 
         self._algorithm = algorithm
-        self._token_expiration_hours = token_expiration_hours
+        self._access_token_expire_minutes = access_token_expire_minutes
+        self._refresh_token_expire_days = refresh_token_expire_days
 
         logger.info(
-            "JwtAuthAdapter inicializado con algoritmo %s y expiración de %d horas",
+            "JwtAuthAdapter inicializado (Alg: %s, Access: %dm, Refresh: %dd)",
             self._algorithm,
-            self._token_expiration_hours
+            self._access_token_expire_minutes,
+            self._refresh_token_expire_days
         )
 
     def hash_password(self, password: str) -> bytes:
-        """
-        Hashea una contraseña usando bcrypt.
-
-        Args:
-            password: La contraseña en texto plano.
-
-        Returns:
-            bytes: El hash de la contraseña.
-        """
+        """Hashea una contraseña usando bcrypt."""
         salt = bcrypt.gensalt()
-        password_hash = bcrypt.hashpw(password.encode("utf-8"), salt)
-
-        logger.debug("Contraseña hasheada exitosamente")
-        return password_hash
+        return bcrypt.hashpw(password.encode("utf-8"), salt)
 
     def verificar_password(self, password: str, stored_password_hash: bytes) -> bool:
-        """
-        Verifica si una contraseña coincide con su hash almacenado.
-
-        Args:
-            password: La contraseña en texto plano a verificar.
-            stored_password_hash: El hash de la contraseña almacenada.
-
-        Returns:
-            bool: True si la contraseña es correcta, False en caso contrario.
-        """
+        """Verifica si una contraseña coincide con su hash almacenado."""
         try:
-            es_valida = bcrypt.checkpw(password.encode("utf-8"), stored_password_hash)
-
-            if es_valida:
-                logger.debug("Verificación de contraseña exitosa")
-            else:
-                logger.warning("Verificación de contraseña fallida")
-
-            return es_valida
+            return bcrypt.checkpw(password.encode("utf-8"), stored_password_hash)
         except Exception as e:
             logger.error("Error al verificar contraseña: %s", str(e))
             return False
 
-    def generar_token(self, usuario: Usuario) -> str:
+    def generar_tokens(self, usuario: Usuario) -> dict:
         """
-        Genera un token JWT para un usuario autenticado.
-
-        Args:
-            usuario: La entidad Usuario para la cual se genera el token.
+        Genera par de tokens (Access + Refresh) para un usuario.
 
         Returns:
-            str: El token JWT codificado.
+            dict: { "access_token": "...", "refresh_token": "..." }
         """
         ahora = datetime.now(timezone.utc)
-        expiracion = ahora + timedelta(hours=self._token_expiration_hours)
+        jti = str(uuid.uuid4())  # ID único para el refresh token
 
-        payload = {
+        # 1. Generar Access Token
+        exp_access = ahora + timedelta(minutes=self._access_token_expire_minutes)
+        payload_access = {
             "sub": str(usuario.uuid),
-            "username": usuario.username,
-            "email": usuario.email,
-            "nombre": usuario.nombre,
             "rol": usuario.rol.value,
-            "iat": ahora,
-            "exp": expiracion
+            "type": "access",
+            "exp": exp_access,
+            "iat": ahora
+        }
+        access_token = jwt.encode(payload_access, self._secret_key, algorithm=self._algorithm)
+
+        # 2. Generar Refresh Token
+        exp_refresh = ahora + timedelta(days=self._refresh_token_expire_days)
+        payload_refresh = {
+            "sub": str(usuario.uuid),
+            "rol": usuario.rol.value,  # Incluir rol para renovación
+            "type": "refresh",
+            "jti": jti,
+            "exp": exp_refresh,
+            "iat": ahora
+        }
+        refresh_token = jwt.encode(payload_refresh, self._secret_key, algorithm=self._algorithm)
+
+        logger.info("Tokens generados para usuario %s", usuario.username)
+
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token
         }
 
-        token = jwt.encode(payload, self._secret_key, algorithm=self._algorithm)
-
-        logger.info(
-            "Token generado para usuario %s con expiración %s",
-            usuario.username,
-            expiracion.isoformat()
-        )
-
-        return token
-
-    def verificar_token(self, token: str) -> Optional[dict]:
+    def verificar_token(self, token: str, tipo_esperado: str = "access") -> Optional[dict]:
         """
-        Verifica un token JWT y extrae la información del usuario.
+        Verifica un token JWT y su tipo.
 
         Args:
-            token: El token JWT a verificar.
+            token: JWT a verificar.
+            tipo_esperado: 'access' o 'refresh'.
 
         Returns:
-            Optional[dict]: Diccionario con los datos del usuario si el token es
-                           válido, None si es inválido o ha expirado.
-                           Contiene: uuid, username, email, nombre, rol.
+            Payload decodificado o None si es inválido/revocado.
         """
         try:
-            payload = jwt.decode(
-                token,
-                self._secret_key,
-                algorithms=[self._algorithm]
-            )
+            payload = jwt.decode(token, self._secret_key, algorithms=[self._algorithm])
 
-            datos_usuario = {
-                "uuid": UUID(payload["sub"]),
-                "username": payload["username"],
-                "email": payload["email"],
-                "nombre": payload["nombre"],
-                "rol": RolUsuario(payload["rol"])
-            }
+            # Validar tipo de token
+            if payload.get("type") != tipo_esperado:
+                logger.warning("Tipo de token inválido. Esperado: %s, Recibido: %s",
+                               tipo_esperado, payload.get("type"))
+                return None
 
-            logger.info("Token verificado exitosamente para usuario %s", payload["username"])
+            # Verificar Blacklist (solo si se inyectó el adaptador y aplica)
+            # Generalmente verificamos blacklist para Refresh Tokens
+            jti = payload.get("jti")
+            if jti and self._blacklist:
+                if self._blacklist.esta_en_blacklist(jti):
+                    logger.warning("Token revocado (JTI: %s) intentó ser usado", jti)
+                    return None
 
-            return datos_usuario
+            return payload
 
         except jwt.ExpiredSignatureError:
-            logger.warning("Intento de uso de token expirado")
+            logger.debug("Token expirado")
             return None
-
         except jwt.InvalidTokenError as e:
             logger.warning("Token inválido: %s", str(e))
             return None
-
         except Exception as e:
-            logger.error("Error inesperado al verificar token: %s", str(e))
+            logger.error("Error verificando token: %s", str(e))
             return None
 
-    def decodificar_token_sin_verificar(self, token: str) -> Optional[dict]:
+    def renovar_access_token(self, refresh_token: str) -> Optional[dict]:
         """
-        Decodifica un token sin verificar su firma (útil para debugging).
-
-        Args:
-            token: El token JWT a decodificar.
-
+        Genera un nuevo Access Token usando un Refresh Token válido.
+        
+        NOTA: Este método NO implementa rotación de refresh token.
+        Para rotación completa, usar renovar_tokens_con_rotacion().
+        
         Returns:
-            Optional[dict]: Los datos del payload si la decodificación es exitosa,
-                           None en caso de error.
-
-        Note:
-            Este método NO verifica la firma ni la expiración del token.
-            Usar solo para propósitos de debugging o logging.
+            dict: { "access_token": "..." } o None si falla.
         """
-        try:
-            payload = jwt.decode(
-                token,
-                options={"verify_signature": False}
-            )
-            return payload
-        except Exception as e:
-            logger.error("Error al decodificar token: %s", str(e))
+        payload = self.verificar_token(refresh_token, tipo_esperado="refresh")
+        
+        if not payload:
             return None
+
+        # Generar nuevo access token
+        # NOTA: Idealmente se debería consultar la DB para obtener el rol actualizado
+        # del usuario, pero para mantener el adaptador sin dependencias, 
+        # generamos el token con la info disponible
+        ahora = datetime.now(timezone.utc)
+        exp_access = ahora + timedelta(minutes=self._access_token_expire_minutes)
+        
+        payload_access = {
+            "sub": payload["sub"],
+            "rol": payload.get("rol", "cliente"),  # Usamos rol del refresh o default
+            "type": "access",
+            "exp": exp_access,
+            "iat": ahora
+        }
+        
+        access_token = jwt.encode(payload_access, self._secret_key, algorithm=self._algorithm)
+        
+        return {
+            "access_token": access_token
+        }
+
+    def renovar_tokens_con_rotacion(self, refresh_token: str) -> Optional[dict]:
+        """
+        Renueva AMBOS tokens (access y refresh) implementando Refresh Token Rotation.
+        
+        Ventajas de la rotación:
+        - Mayor seguridad: cada refresh invalida el anterior
+        - Detecta uso de tokens robados (si se usa el viejo, se detecta)
+        - Limita ventana de exposición si un token es comprometido
+        
+        Returns:
+            dict: {
+                "access_token": "...",
+                "refresh_token": "...",
+                "old_jti": "..."  # Para revocar el anterior
+            } o None si falla.
+        """
+        payload = self.verificar_token(refresh_token, tipo_esperado="refresh")
+        
+        if not payload:
+            return None
+
+        old_jti = payload.get("jti")
+        ahora = datetime.now(timezone.utc)
+        
+        # 1. Generar NUEVO Access Token
+        exp_access = ahora + timedelta(minutes=self._access_token_expire_minutes)
+        payload_access = {
+            "sub": payload["sub"],
+            "rol": payload.get("rol", "cliente"),
+            "type": "access",
+            "exp": exp_access,
+            "iat": ahora
+        }
+        access_token = jwt.encode(payload_access, self._secret_key, algorithm=self._algorithm)
+
+        # 2. Generar NUEVO Refresh Token (con nuevo JTI)
+        new_jti = str(uuid.uuid4())
+        exp_refresh = ahora + timedelta(days=self._refresh_token_expire_days)
+        payload_refresh = {
+            "sub": payload["sub"],
+            "rol": payload.get("rol", "cliente"),
+            "type": "refresh",
+            "jti": new_jti,
+            "exp": exp_refresh,
+            "iat": ahora
+        }
+        new_refresh_token = jwt.encode(payload_refresh, self._secret_key, algorithm=self._algorithm)
+
+        logger.info(f"Token rotation: usuario {payload['sub']}, old_jti={old_jti}, new_jti={new_jti}")
+
+        return {
+            "access_token": access_token,
+            "refresh_token": new_refresh_token,
+            "old_jti": old_jti  # Para que el caller lo revoque
+        }
+
+    def revocar_token(self, token: str) -> bool:
+        """
+        Revoca un token agregando su JTI a la blacklist.
+        
+        Args:
+            token: Refresh token a revocar.
+        """
+        if not self._blacklist:
+            logger.warning("Intento de revocar token sin BlacklistAdapter configurado")
+            return False
+
+        try:
+            # Decodificar sin verificar expiración (queremos revocar incluso si expiró hace poco)
+            # Pero SÍ verificamos firma para no llenar redis de basura
+            payload = jwt.decode(token, self._secret_key, algorithms=[self._algorithm], 
+                                 options={"verify_exp": False})
+            
+            jti = payload.get("jti")
+            exp = payload.get("exp")
+            
+            if not jti or not exp:
+                logger.warning("Token sin JTI o EXP no se puede revocar")
+                return False
+
+            ahora_ts = datetime.now(timezone.utc).timestamp()
+            ttl = int(exp - ahora_ts)
+            
+            if ttl > 0:
+                self._blacklist.agregar(jti, ttl)
+                return True
+            else:
+                logger.info("Token ya expirado, no es necesario revocar")
+                return True
+
+        except Exception as e:
+            logger.error("Error al revocar token: %s", str(e))
+            return False
+
+    def generar_token(self, usuario: Usuario) -> str:
+        """Mantiene compatibilidad con interfaz antigua (DEPRECATED)."""
+        logger.warning("Uso de método depreciado: generar_token")
+        return self.generar_tokens(usuario)["access_token"]
