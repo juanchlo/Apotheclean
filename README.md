@@ -65,6 +65,12 @@ Simulacion de un servicio de almacenamiento en la nube (S3/Azure Blob) utilizand
 
 ## Guia de Ejecucion
 
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/juanchlo/Apotheclean
+   cd Apotheclean
+   ```
+
 ### Opcion A: Docker (Recomendado)
 La forma mas sencilla de levantar todo el ecosistema.
 
