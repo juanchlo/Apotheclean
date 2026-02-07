@@ -22,6 +22,23 @@ Simulacion de un servicio de almacenamiento en la nube (S3/Azure Blob) utilizand
 - Roles: Separacion estricta entre Administrador y Usuario.
 - Hashing: Contrasenas almacenadas de forma segura con bcrypt.
 
+## Funcionalidades de la Aplicacion
+
+### Panel de Administrador
+- **Gestion de Productos**: CRUD completo (Crear, Leer, Actualizar, Eliminar). Soporte para carga de imagenes y  control de stock.
+- **Reportes Avanzados**: Visualizacion de ventas con graficas interactivas, filtrado por rango de fechas y paginacion de resultados.
+- **Historial de Ventas**: Vista detallada de todas las transacciones realizadas tanto en punto fisico como virtual.
+
+### Pagina de Venta para Clientes (Tienda Virtual)
+- **Catalogo de Productos**: Exploracion de productos disponibles con imagenes y precios en tiempo real.
+- **Carrito de Compras**: Gestion de items seleccionados, calculo automatico de totales y persistencia temporal del carrito.
+- **Checkout**: Proceso simplificado para completar la compra.
+
+### Gestion de Ventas
+- **Punto de Venta Fisico**: Interfaz optimizada para que los administradores registren ventas en el local rapidamente.
+- **Venta Virtual**: Flujo de compra completo para clientes remotos.
+- **Facturacion**: Generacion de registros de venta inmutables.
+
 ---
 
 ## Stack Tecnologico
