@@ -1,185 +1,136 @@
-# 💊 Apotheclean
+# Apotheclean
 
-Sistema de farmacia para venta, registro de productos y reportes. Backend con arquitectura hexagonal y frontend en React.
+Sistema de farmacia para venta, registro de productos y reportes. Construido con una Arquitectura Hexagonal en el backend y una interfaz moderna en React.
 
-## 🛠️ Stack Tecnológico
+## Caracteristicas Principales
 
-- **Backend**: Python, Flask, SQLAlchemy (ORM)
-- **Base de datos**: SQLite
-- **Cache**: Redis
-- **Autenticación**: JWT (bcrypt para hash de contraseñas)
-- **Contenedores**: Docker, Docker Compose
+### Arquitectura Hexagonal (Ports & Adapters)
+El nucleo de la logica de negocio (domain y application) esta completamente desacoplado de la infraestructura (frameworks, bases de datos).
+- Puertos: Interfaces que definen los contratos (IProductoRepository, IImageStorage).
+- Adaptadores: Implementaciones concretas (SqlAlchemyRepository, FilesystemImageAdapter).
 
-## 📋 Requisitos Previos
+### Patrones de Resiliencia
+Implementacion robusta para manejar fallos transitorios:
+- Circuit Breaker: Utilizando la libreria Tenacity, protegemos las operaciones criticas de base de datos para evitar cascadas de fallos.
+- Retries: Configuracion automatica de reintentos con backoff exponencial.
 
-- Docker y Docker Compose
-- (Opcional para desarrollo local) Python 3.14+ y [uv](https://docs.astral.sh/uv/)
+### Mock de Blob Storage
+Simulacion de un servicio de almacenamiento en la nube (S3/Azure Blob) utilizando el sistema de archivos local (FilesystemImageAdapter). Las imagenes se guardan como objetos utilizando su UUID, sin depender de estructuras de carpetas complejas.
 
-## 🚀 Inicio Rápido con Docker
+### Seguridad
+- Autenticacion JWT: Tokens seguros para manejo de sesiones.
+- Roles: Separacion estricta entre Administrador y Usuario.
+- Hashing: Contrasenas almacenadas de forma segura con bcrypt.
 
-### 1. Configurar variables de entorno
+---
 
-```bash
-cp .env.example .env
-# Editar .env con tus valores (especialmente JWT_SECRET_KEY y REDIS_PASSWORD)
+## Stack Tecnologico
+
+### Backend
+- Python 3.12+
+- Flask (API REST)
+- SQLAlchemy (ORM)
+- Redis (Cache & Carrito de Compras)
+- Pydantic (Validacion de datos)
+- Tenacity (Resiliencia)
+
+### Frontend
+- React 19
+- Vite
+- TailwindCSS (Estilos)
+- Recharts (Graficos y Reportes)
+
+### Infraestructura
+- Docker & Docker Compose
+- SQLite (Base de datos local)
+
+---
+
+## Guia de Ejecucion
+
+### Opcion A: Docker (Recomendado)
+La forma mas sencilla de levantar todo el ecosistema.
+
+1. Configurar entorno:
+   Copie el archivo .env.example a .env y ajuste los valores si es necesario.
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Iniciar servicios:
+   ```bash
+   docker compose up --build
+   ```
+   - Frontend: http://localhost
+   - Backend API: http://localhost:5000
+
+3. Crear usuario Administrador:
+   ```bash
+   docker exec -it apotheclean-backend python -m scripts.crear_admin
+   ```
+   Nota: Por reglas de negocio, los administradores solo se crean mediante CLI.
+
+### Opcion B: Ejecucion Local
+
+#### Backend
+1. Instalar dependencias (se recomienda usar uv o venv):
+   ```bash
+   cd backend
+   uv sync
+   # O con pip tradicional:
+   # pip install -r requirements.txt
+   ```
+2. Ejecutar servidor:
+   ```bash
+   python -m src.main
+   ```
+
+#### Frontend
+1. Instalar dependencias:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Iniciar servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+   - Frontend disponible en: http://localhost:5173
+
+---
+
+## Estructura del Proyecto
+
+```
+Apotheclean/
+├── backend/
+│   ├── src/
+│   │   ├── domain/           # Entidades y logica pura
+│   │   ├── application/      # Casos de uso y Puertos
+│   │   ├── infraestructure/  # Adaptadores (API, DB, Storage)
+│   │   └── main.py           # Punto de entrada
+│   └── tests/                # Pruebas unitarias y de integracion
+├── frontend/
+│   ├── src/
+│   │   ├── components/       # Componentes React reutilizables
+│   │   ├── pages/            # Vistas principales
+│   │   └── services/         # Comunicacion con API
+└── docker-compose.yml        # Orquestacion de contenedores
 ```
 
-### 2. Levantar los servicios
+## Testing
+
+Las pruebas unitarias deben ejecutarse localmente, ya que la imagen de Docker de produccion no incluye las dependencias de desarrollo.
 
 ```bash
-docker compose up --build
-```
-
-La API estará disponible en: `http://localhost:5000`
-
-### 3. Crear usuario administrador
-
-```bash
-docker exec -it apotheclean-backend python -m scripts.crear_admin
-```
-
-> ⚠️ Los administradores solo pueden crearse mediante este script (regla de negocio).
-
-## 🔧 Desarrollo Local (sin Docker)
-
-```bash
-# Instalar dependencias
-uv sync
-
-# Ejecutar aplicación
-JWT_SECRET_KEY="tu_clave_secreta" uv run python -m src.main
-
-# Ejecutar tests
+cd backend
 uv run pytest
 ```
 
-## 📡 Endpoints de la API
+## Notas sobre los Datos
+Este repositorio incluye archivos de base de datos (farmacia.db) y una carpeta de imagenes precargadas en backend/data/. Esto permite probar la aplicacion inmediatamente sin necesidad de poblar datos desde cero.
 
-### Autenticación
+---
 
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/auth/registro` | Registrar usuario cliente | ❌ |
-| POST | `/api/auth/login` | Iniciar sesión | ❌ |
-
-### Productos
-
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/productos` | Listar productos | ❌ |
-| GET | `/api/productos/<uuid>` | Obtener producto | ❌ |
-| POST | `/api/productos` | Crear producto | 🔐 Admin |
-| PUT | `/api/productos/<uuid>` | Actualizar producto | 🔐 Admin |
-| DELETE | `/api/productos/<uuid>` | Eliminar producto (soft) | 🔐 Admin |
-
-### Ventas
-
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/ventas` | Crear venta | 🔐 |
-| GET | `/api/ventas/<uuid>` | Obtener venta | 🔐 |
-| POST | `/api/ventas/<uuid>/completar` | Completar venta | 🔐 |
-| POST | `/api/ventas/<uuid>/cancelar` | Cancelar venta | 🔐 |
-| GET | `/api/ventas/reporte` | Reporte de ventas | 🔐 Admin |
-
-### Carrito (Redis)
-
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/carrito` | Ver carrito actual | 🔐 |
-| POST | `/api/carrito/items` | Agregar producto | 🔐 |
-| DELETE | `/api/carrito/items/<uuid>` | Eliminar producto | 🔐 |
-| DELETE | `/api/carrito` | Vaciar carrito | 🔐 |
-| POST | `/api/carrito/checkout` | Convertir a venta | 🔐 |
-
-### Health Check
-
-```bash
-curl http://localhost:5000/health
-```
-
-## 🗄️ Modelo de Base de Datos
-
-```mermaid
-erDiagram
-    USUARIOS {
-        int id PK
-        binary uuid UK
-        string username UK
-        binary password_hash
-        string email UK
-        string nombre
-        string rol
-        datetime timestamp_creacion
-        boolean activo
-    }
-
-    PRODUCTOS {
-        int id PK
-        binary uuid UK
-        string nombre
-        string barcode UK
-        decimal valor_unitario
-        int stock
-        string descripcion
-        string imagen_uuid
-        boolean eliminado
-    }
-
-    VENTAS {
-        int id PK
-        binary uuid UK
-        string modalidad
-        string estado
-        int comprador_id FK
-        int vendedor_id FK
-        datetime fecha
-        decimal valor_total_cop
-    }
-
-    DETALLE_VENTAS {
-        int id PK
-        int venta_id FK
-        binary producto_id
-        int cantidad
-        decimal precio_unitario_historico
-    }
-
-    USUARIOS ||--o{ VENTAS : "compra"
-    USUARIOS ||--o{ VENTAS : "vende"
-    VENTAS ||--|{ DETALLE_VENTAS : "contiene"
-    PRODUCTOS ||--o{ DETALLE_VENTAS : "incluido_en"
-```
-
-## 🔍 Consultar la Base de Datos
-
-```bash
-# Acceder a SQLite dentro del contenedor
-docker exec -it apotheclean-backend sqlite3 /app/data/farmacia.db
-
-# Comandos útiles dentro de SQLite
-.tables                    -- Ver tablas
-SELECT * FROM usuarios;    -- Ver usuarios
-SELECT * FROM productos;   -- Ver productos
-.quit                      -- Salir
-```
-
-## 📁 Estructura del Proyecto
-
-```
-src/
-├── domain/           # Entidades y reglas de negocio
-├── application/      # Casos de uso y puertos
-│   ├── ports/        # Interfaces (puertos)
-│   └── use_cases/    # Casos de uso
-└── infraestructure/  # Adaptadores
-    ├── adapters/     # Implementaciones de repositorios
-    ├── api/          # Flask app y rutas
-    ├── auth/         # JWT adapter
-    ├── cache/        # Redis adapters
-    └── storage/      # Almacenamiento de imágenes
-```
-
-## 📄 Licencia
-
-[Ver LICENSE](LICENSE)
+## Licencia
+MIT

@@ -89,11 +89,6 @@ yarn-error.log*
 frontend/build/
 frontend/dist/
 
-# SQLite
-*.db
-*.sqlite
-*.sqlite3
-
 # Redis
 dump.rdb
 
