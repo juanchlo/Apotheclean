@@ -21,6 +21,7 @@ interface ProductoVendido {
     nombre: string;
     barcode: string;
     cantidad: number;
+    detalleOtros?: { nombre: string; cantidad: number }[];
 }
 
 /** Posición del tooltip de producto */
@@ -213,9 +214,21 @@ export function Reports() {
         }
 
         const top5 = productos.slice(0, 5);
-        const otros = productos.slice(5).reduce((sum, p) => sum + p.cantidad, 0);
+        const otrosItems = productos.slice(5);
+        const otrosCantidad = otrosItems.reduce((sum, p) => sum + p.cantidad, 0);
 
-        return [...top5, { nombre: 'Otros', barcode: '', cantidad: otros }];
+        return [
+            ...top5,
+            {
+                nombre: 'Otros',
+                barcode: '',
+                cantidad: otrosCantidad,
+                detalleOtros: otrosItems.map(p => ({
+                    nombre: p.nombre,
+                    cantidad: p.cantidad
+                }))
+            }
+        ];
     };
 
     const datosGrafico = calcularDatosGrafico();
@@ -263,13 +276,12 @@ export function Reports() {
         setProductoHover(null);
     };
 
-    /**
-     * Renderiza el label personalizado para el gráfico pie.
-     */
-    const renderCustomLabel = (props: { name?: string; percent?: number }) => {
-        const { name, percent } = props;
-        return `${name ?? ''} (${((percent ?? 0) * 100).toFixed(0)}%)`;
-    };
+
+
+    // Calular total de items vendidos para porcentajes
+    const totalItemsVendidos = todasLasVentas.reduce((acc, venta) => {
+        return acc + venta.items.reduce((sum, item) => sum + item.cantidad, 0);
+    }, 0);
 
     /**
      * Renderiza el tooltip personalizado para el gráfico.
@@ -284,7 +296,43 @@ export function Reports() {
                     {data.barcode && (
                         <p className="chart-tooltip-barcode">{data.barcode}</p>
                     )}
-                    <p className="chart-tooltip-cantidad">{data.cantidad} unidades</p>
+                    <p className="chart-tooltip-cantidad">
+                        {data.cantidad} unidades
+                        {totalItemsVendidos > 0 && (
+                            <span className="chart-tooltip-percentage">
+                                ({((data.cantidad / totalItemsVendidos) * 100).toFixed(1)}%)
+                            </span>
+                        )}
+                    </p>
+
+                    {/* Detalle para "Otros" */}
+                    {data.detalleOtros && data.detalleOtros.length > 0 && (
+                        <div className="chart-tooltip-others">
+                            <p className="chart-tooltip-others-title">Incluye:</p>
+                            <ul className="chart-tooltip-others-list">
+                                {data.detalleOtros.slice(0, 10).map((item, idx) => (
+                                    <li key={idx}>
+                                        <div className="chart-tooltip-others-item-name">
+                                            {item.nombre}
+                                        </div>
+                                        <div className="chart-tooltip-others-item-stats">
+                                            <strong>{item.cantidad}</strong>
+                                            {totalItemsVendidos > 0 && (
+                                                <span className="chart-tooltip-percentage-sm">
+                                                    ({((item.cantidad / totalItemsVendidos) * 100).toFixed(1)}%)
+                                                </span>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                                {data.detalleOtros.length > 10 && (
+                                    <li className="chart-tooltip-others-more">
+                                        ... y {data.detalleOtros.length - 10} más
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -409,8 +457,6 @@ export function Reports() {
                                                 cx="50%"
                                                 cy="50%"
                                                 outerRadius={100}
-                                                label={renderCustomLabel}
-                                                labelLine={false}
                                             >
                                                 {datosGrafico.map((_, index) => (
                                                     <Cell

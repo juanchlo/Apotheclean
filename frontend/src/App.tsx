@@ -9,6 +9,7 @@ import { Register } from './pages/auth/Register';
 import { Reports } from './pages/admin/Reports';
 import { Products } from './pages/admin/Products';
 import { Sales } from './pages/admin/Sales';
+import { Store } from './pages/user/Store';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import './index.css';
 
@@ -50,15 +51,12 @@ function App() {
           }
         />
 
-        {/* Página de productos para usuarios (placeholder por ahora) */}
+        {/* Página de productos para usuarios */}
         <Route
           path="/productos"
           element={
             <ProtectedRoute>
-              <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h1>Catálogo de Productos</h1>
-                <p>Esta página se implementará próximamente.</p>
-              </div>
+              <Store />
             </ProtectedRoute>
           }
         />
