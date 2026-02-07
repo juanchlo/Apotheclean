@@ -12,6 +12,9 @@ from src.application.ports.repositories import IVentaRepository
 from src.infraestructure.adapters.orm.models import VentaModel, DetalleVentaModel
 
 
+from src.infraestructure.resilience import retry_db_operation
+
+
 class SQLAlchemyVentaRepository(IVentaRepository):
     """Implementación del repositorio de ventas usando SQLAlchemy."""
 
@@ -24,6 +27,7 @@ class SQLAlchemyVentaRepository(IVentaRepository):
         """
         self.session = session
 
+    @retry_db_operation
     def guardar(self, venta: Venta) -> None:
         """
         Guarda una nueva venta o actualiza una existente.
@@ -69,6 +73,7 @@ class SQLAlchemyVentaRepository(IVentaRepository):
 
         self.session.commit()
 
+    @retry_db_operation
     def obtener_por_uuid(self, uuid: UUID) -> Optional[Venta]:
         """Obtiene una venta por su UUID."""
         modelo = self.session.query(VentaModel).filter_by(
@@ -76,6 +81,7 @@ class SQLAlchemyVentaRepository(IVentaRepository):
         ).first()
         return self._modelo_a_entidad(modelo) if modelo else None
 
+    @retry_db_operation
     def obtener_todos(self, limite: int, offset: int) -> List[Venta]:
         """Obtiene todas las ventas con paginación."""
         modelos = self.session.query(VentaModel)\
@@ -85,6 +91,7 @@ class SQLAlchemyVentaRepository(IVentaRepository):
             .all()
         return [self._modelo_a_entidad(m) for m in modelos]
 
+    @retry_db_operation
     def eliminar(self, uuid: UUID) -> None:
         """Elimina una venta (cancela)."""
         modelo = self.session.query(VentaModel).filter_by(
@@ -94,6 +101,7 @@ class SQLAlchemyVentaRepository(IVentaRepository):
             modelo.estado = EstadoVenta.CANCELADA.value
             self.session.commit()
 
+    @retry_db_operation
     def buscar(
         self,
         usuario_id: Optional[UUID] = None,

@@ -11,6 +11,9 @@ from src.application.ports.repositories import IProductoRepository
 from src.infraestructure.adapters.orm.models import ProductoModel
 
 
+from src.infraestructure.resilience import retry_db_operation
+
+
 class SQLAlchemyProductoRepository(IProductoRepository):
     """Implementación del repositorio de productos usando SQLAlchemy."""
 
@@ -23,6 +26,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
         """
         self.session = session
 
+    @retry_db_operation
     def guardar(self, producto: Producto) -> None:
         """
         Guarda un nuevo producto o actualiza uno existente.
@@ -57,6 +61,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
 
         self.session.commit()
 
+    @retry_db_operation
     def obtener_por_uuid(self, uuid: UUID) -> Optional[Producto]:
         """Obtiene un producto por su UUID."""
         modelo = self.session.query(ProductoModel).filter_by(
@@ -64,6 +69,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
         ).first()
         return self._modelo_a_entidad(modelo) if modelo else None
 
+    @retry_db_operation
     def obtener_por_barcode(self, barcode: str) -> Optional[Producto]:
         """Obtiene un producto por su código de barras."""
         modelo = self.session.query(ProductoModel).filter_by(
@@ -71,6 +77,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
         ).first()
         return self._modelo_a_entidad(modelo) if modelo else None
 
+    @retry_db_operation
     def obtener_todos(self, limite: int, offset: int) -> List[Producto]:
         """Obtiene todos los productos activos con paginación."""
         modelos = self.session.query(ProductoModel)\
@@ -80,6 +87,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
             .all()
         return [self._modelo_a_entidad(m) for m in modelos]
 
+    @retry_db_operation
     def eliminar(self, uuid: UUID) -> None:
         """Soft delete de un producto."""
         modelo = self.session.query(ProductoModel).filter_by(
@@ -90,6 +98,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
             modelo.eliminado = True
             self.session.commit()
 
+    @retry_db_operation
     def restaurar(self, uuid: UUID) -> None:
         """
         Restaura un producto eliminado.
@@ -105,6 +114,7 @@ class SQLAlchemyProductoRepository(IProductoRepository):
             modelo.eliminado = False
             self.session.commit()
 
+    @retry_db_operation
     def obtener_eliminados(self, limite: int, offset: int) -> List[Producto]:
         """
         Obtiene productos eliminados con paginación.

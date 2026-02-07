@@ -10,6 +10,9 @@ from src.application.ports.repositories import IUsuarioRepository
 from src.infraestructure.adapters.orm.models import UsuarioModel
 
 
+from src.infraestructure.resilience import retry_db_operation
+
+
 class SQLAlchemyUsuarioRepository(IUsuarioRepository):
     """Implementación del repositorio de usuarios usando SQLAlchemy."""
 
@@ -22,6 +25,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
         """
         self.session = session
 
+    @retry_db_operation
     def guardar(self, usuario: Usuario) -> bool:
         """
         Guarda un nuevo usuario o actualiza uno existente.
@@ -59,6 +63,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
         self.session.commit()
         return True
 
+    @retry_db_operation
     def obtener_por_uuid(self, uuid: UUID) -> Optional[Usuario]:
         """Obtiene un usuario por su UUID."""
         modelo = self.session.query(UsuarioModel).filter_by(
@@ -66,6 +71,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
         ).first()
         return self._modelo_a_entidad(modelo) if modelo else None
 
+    @retry_db_operation
     def obtener_por_email(self, email: str) -> Optional[Usuario]:
         """Obtiene un usuario por su email."""
         modelo = self.session.query(UsuarioModel).filter_by(
@@ -73,6 +79,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
         ).first()
         return self._modelo_a_entidad(modelo) if modelo else None
 
+    @retry_db_operation
     def obtener_por_username(self, username: str) -> Optional[Usuario]:
         """Obtiene un usuario por su username."""
         modelo = self.session.query(UsuarioModel).filter_by(
@@ -80,6 +87,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
         ).first()
         return self._modelo_a_entidad(modelo) if modelo else None
 
+    @retry_db_operation
     def obtener_por_username_o_email(self, username: Optional[str],
                                      email: Optional[str]) -> Optional[Usuario]:
         """Obtiene un usuario por su username o email."""
@@ -97,6 +105,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
 
         return None
 
+    @retry_db_operation
     def obtener_todos(self, limite: int, offset: int) -> List[Usuario]:
         """Obtiene todos los usuarios con paginación."""
         modelos = self.session.query(UsuarioModel)\
@@ -105,6 +114,7 @@ class SQLAlchemyUsuarioRepository(IUsuarioRepository):
             .all()
         return [self._modelo_a_entidad(m) for m in modelos]
 
+    @retry_db_operation
     def deshabilitar(self, uuid: UUID) -> bool:
         """Deshabilita un usuario (soft delete)."""
         modelo = self.session.query(UsuarioModel).filter_by(
