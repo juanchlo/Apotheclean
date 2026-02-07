@@ -1,10 +1,11 @@
 
 import pytest
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 from sqlalchemy.exc import OperationalError
 from tenacity import RetryError
 
 from src.infraestructure.resilience import retry_db_operation
+
 
 class MockService:
     """Clase mock para probar el decorador."""

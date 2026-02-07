@@ -58,6 +58,22 @@ services:
       retries: 3
     restart: unless-stopped
 
+  # ------------------------------------------
+  # Frontend React
+  # ------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: apotheclean-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - default
+
 # ------------------------------------------
 # Volúmenes persistentes
 # ------------------------------------------
