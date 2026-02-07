@@ -144,7 +144,7 @@ class TestLoginUsuario:
 
         mock_auth = Mock(spec=IAuth)
         mock_auth.verificar_password.return_value = True
-        mock_auth.generar_token.return_value = "token_jwt_valido"
+        mock_auth.generar_tokens.return_value = "token_jwt_valido"
 
         login = LoginUsuario(mock_repo, mock_auth)
         input_data = LoginUsuarioInput(
@@ -157,7 +157,7 @@ class TestLoginUsuario:
 
         # Assert
         assert token == "token_jwt_valido"
-        mock_auth.generar_token.assert_called_once_with(usuario_mock)
+        mock_auth.generar_tokens.assert_called_once_with(usuario_mock)
 
     def test_login_exitoso_con_email(self):
         """Verifica que el login funciona con email."""
@@ -171,7 +171,7 @@ class TestLoginUsuario:
 
         mock_auth = Mock(spec=IAuth)
         mock_auth.verificar_password.return_value = True
-        mock_auth.generar_token.return_value = "token_jwt"
+        mock_auth.generar_tokens.return_value = "token_jwt"
 
         login = LoginUsuario(mock_repo, mock_auth)
         input_data = LoginUsuarioInput(
